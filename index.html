@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bad Kids — Writer's Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+  <style>
+    /* ── VARIABLES ──────────────────────────────────────── */
+    :root {
+      --bg:                #08080d;
+      --bg-elevated:       #0c0c14;
+      --surface:           rgba(14,14,22,0.80);
+      --surface-solid:     #0e0e16;
+      --surface-hover:     rgba(22,22,35,0.90);
+      --glass:             rgba(18,18,28,0.60);
+      --glass-border:      rgba(255,255,255,0.06);
+      --glass-border-h:    rgba(255,255,255,0.12);
+      --text:              #e8e7ed;
+      --text-2:            #8a8a9c;
+      --text-muted:        #4a4a5c;
+      --accent:            #c9a0ff;
+      --accent-glow:       rgba(201,160,255,0.15);
+      --green:             #4ade80;
+      --green-glow:        rgba(74,222,128,0.15);
+      --amber:             #f59e0b;
+      --amber-glow:        rgba(245,158,11,0.15);
+      --red:               #f87171;
+      --red-glow:          rgba(248,113,113,0.15);
+      --blue:              #60a5fa;
+      --blue-glow:         rgba(96,165,250,0.15);
+      --pink:              #f472b6;
+      --cyan:              #22d3ee;
+      --header-h:          52px;
+      --tab-h:             44px;
+    }
+
+    /* ── RESET ──────────────────────────────────────────── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      /* dot-grid texture so glass effects are visible */
+      background-image:
+        radial-gradient(ellipse 80% 60% at 15% 20%, rgba(201,160,255,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 85% 75%, rgba(96,165,250,0.05) 0%, transparent 55%),
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+      background-size: 100% 100%, 100% 100%, 28px 28px;
+    }
+    button { cursor: pointer; font-family: inherit; }
+    input, textarea { font-family: inherit; }
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius:99px; }
+
+    /* ── ANIMATIONS ─────────────────────────────────────── */
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+    @keyframes pulse    { 0%,100% { box-shadow:0 0 0 0 rgba(201,160,255,0.5); } 50% { box-shadow:0 0 0 8px rgba(201,160,255,0); } }
+    @keyframes starTwinkle { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+
+    /* ── TOOLTIP ─────────────────────────────────────────── */
+    [data-tip] { position: relative; }
+    [data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 7px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(12,12,20,0.96);
+      border: 1px solid var(--glass-border-h);
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 11px;
+      color: var(--text-2);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .15s;
+      z-index: 999;
+    }
+    [data-tip]:hover::after { opacity: 1; }
+
+    /* ══════════════════════════════════════════════════════
+       LOGIN
+    ══════════════════════════════════════════════════════ */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse 70% 55% at 50% 42%, rgba(201,160,255,0.07) 0%, transparent 70%);
+    }
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      padding: 44px 36px 36px;
+      background: var(--surface);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      box-shadow: 0 0 80px rgba(201,160,255,0.05), 0 24px 64px rgba(0,0,0,0.5);
+      animation: fadeUp .4s ease;
+    }
+    .login-brand { text-align:center; margin-bottom:36px; }
+    .login-glyph { font-size:28px; color:var(--accent); display:block; margin-bottom:10px; text-shadow:0 0 24px rgba(201,160,255,.5); }
+    .login-title { font-family:'Playfair Display',serif; font-size:26px; font-weight:600; letter-spacing:.02em; }
+    .login-sub   { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.16em; margin-top:5px; }
+
+    .auth-tabs { display:flex; border:1px solid var(--glass-border); border-radius:10px; overflow:hidden; margin-bottom:26px; }
+    .auth-tab  { flex:1; padding:10px; background:transparent; border:none; color:var(--text-2); font-size:13px; font-weight:500; transition:all .18s; }
+    .auth-tab.active { background:rgba(201,160,255,0.1); color:var(--accent); }
+
+    .form-field { margin-bottom:16px; }
+    .form-label { display:block; font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.12em; margin-bottom:7px; }
+    .form-input {
+      width:100%;
+      background: rgba(8,8,16,0.8);
+      border: 1px solid var(--glass-border);
+      border-radius: 9px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .form-input:focus { border-color:rgba(201,160,255,.5); box-shadow:0 0 0 3px rgba(201,160,255,.08); }
+    .form-input::placeholder { color:var(--text-muted); }
+
+    .btn-primary {
+      width:100%; padding:12px; background:var(--accent); color:#07070c;
+      border:none; border-radius:100px; font-size:14px; font-weight:600;
+      letter-spacing:.02em; transition:opacity .18s, transform .1s; margin-top:4px;
+    }
+    .btn-primary:hover { opacity:.88; }
+    .btn-primary:active { transform:scale(.99); }
+    .btn-primary:disabled { opacity:.4; cursor:not-allowed; }
+
+    .auth-msg {
+      margin-top:14px; border-radius:9px; padding:10px 14px;
+      font-size:13px; line-height:1.4; display:none;
+    }
+    .auth-msg.show { display:block; }
+    .auth-msg.error { background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.2); color:var(--red); }
+    .auth-msg.ok    { background:rgba(74,222,128,.08); border:1px solid rgba(74,222,128,.2); color:var(--green); }
+
+    /* ══════════════════════════════════════════════════════
+       APP SHELL
+    ══════════════════════════════════════════════════════ */
+    #app { display:none; flex-direction:column; min-height:100vh; }
+    #app.on { display:flex; }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    .app-header {
+      position: sticky; top:0; z-index:200; height:var(--header-h);
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 0 28px;
+      background: rgba(8,8,13,0.88);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .header-logo { font-family:'Playfair Display',serif; font-size:15px; color:var(--accent); letter-spacing:.04em; }
+    .header-right { display:flex; align-items:center; gap:14px; }
+    .header-email { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); }
+    .btn-signout {
+      background:transparent; border:1px solid var(--glass-border); color:var(--text-2);
+      padding:5px 14px; border-radius:100px; font-size:12px; transition:all .18s;
+    }
+    .btn-signout:hover { border-color:rgba(248,113,113,.4); color:var(--red); }
+
+    /* ── TAB NAV ─────────────────────────────────────────── */
+    .tab-nav {
+      height:var(--tab-h); display:flex; align-items:stretch;
+      padding: 0 28px; gap:2px;
+      background: rgba(10,10,18,0.7);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--glass-border);
+      overflow-x: auto;
+    }
+    .tab-nav::-webkit-scrollbar { height:2px; }
+    .tab-btn {
+      display:flex; align-items:center; gap:7px;
+      padding: 0 16px;
+      background:transparent; border:none; border-bottom:2px solid transparent;
+      color:var(--text-muted); font-size:12px; font-weight:600;
+      text-transform:uppercase; letter-spacing:.09em;
+      transition:color .18s, border-color .18s; white-space:nowrap;
+    }
+    .tab-btn .tab-icon { font-size:13px; opacity:.7; }
+    .tab-btn:hover { color:var(--text-2); }
+    .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .tab-btn.active .tab-icon { opacity:1; }
+
+    /* ── TAB PANELS ──────────────────────────────────────── */
+    .tab-panel { display:none; padding: 36px 28px 100px; max-width:1100px; margin:0 auto; width:100%; animation:fadeUp .15s ease; }
+    .tab-panel.active { display:block; }
+    .tab-panel.full-width { max-width:none; padding-left:0; padding-right:0; }
+
+    .panel-title    { font-family:'Playfair Display',serif; font-size:26px; font-weight:600; margin-bottom:6px; }
+    .panel-subtitle { font-size:13px; color:var(--text-2); margin-bottom:32px; }
+    .section-label  { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.14em; margin-bottom:14px; }
+
+    /* ── GLASS CARD ──────────────────────────────────────── */
+    .glass-card {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+    .glass-card:hover {
+      border-color: var(--glass-border-h);
+      box-shadow: 0 8px 32px rgba(0,0,0,.25);
+    }
+    .glass-card.lift:hover { transform: translateY(-2px); }
+
+    /* ── STATUS DOT ──────────────────────────────────────── */
+    .dot {
+      display:inline-block; width:8px; height:8px; border-radius:50%;
+      flex-shrink:0;
+    }
+    .dot-green  { background:var(--green);  box-shadow:0 0 8px rgba(74,222,128,.6); }
+    .dot-amber  { background:var(--amber);  }
+    .dot-purple { background:var(--accent); box-shadow:0 0 8px rgba(201,160,255,.5); animation:pulse 2s ease-in-out infinite; }
+    .dot-blue   { background:var(--blue);   box-shadow:0 0 6px rgba(96,165,250,.4); }
+    .dot-red    { background:var(--red);    box-shadow:0 0 6px rgba(248,113,113,.4); }
+    .dot-cyan   { background:var(--cyan);   box-shadow:0 0 6px rgba(34,211,238,.4); }
+    .dot-muted  { background:var(--text-muted); }
+
+    /* ════════════════════════════════════════════════════
+       TAB 1 — TIMELINE
+    ════════════════════════════════════════════════════ */
+    .tl-wrap { position:relative; padding-left:40px; }
+    .tl-spine {
+      position:absolute; left:11px; top:0; bottom:0; width:2px;
+      background: linear-gradient(to bottom, var(--accent) 0%, var(--amber) 50%, rgba(30,30,48,.3) 100%);
+    }
+
+    .tl-node { position:relative; margin-bottom:12px; }
+    .tl-node-dot {
+      position:absolute; left:-35px; top:18px;
+      width:14px; height:14px; border-radius:50%;
+      border:2px solid; background:var(--bg);
+      transition: transform .2s;
+    }
+    .tl-node:hover .tl-node-dot { transform:scale(1.25); }
+    .tl-dot-canon   { border-color:var(--green);  background:rgba(74,222,128,.15); box-shadow:0 0 10px rgba(74,222,128,.35); }
+    .tl-dot-upcoming{ border-color:var(--amber);  background:rgba(245,158,11,.08); }
+    .tl-dot-progress{ border-color:var(--accent); background:rgba(201,160,255,.15); animation:pulse 2s ease-in-out infinite; }
+
+    .tl-card { overflow:hidden; }
+    .tl-card.expandable { cursor:pointer; }
+
+    .tl-card-head { display:flex; align-items:center; gap:12px; padding:14px 18px; }
+    .tl-num       { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-muted); min-width:20px; }
+    .tl-info      { flex:1; min-width:0; }
+    .tl-title     { font-family:'Playfair Display',serif; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .tl-period    { font-size:11px; color:var(--text-2); margin-top:2px; }
+    .tl-status-pill {
+      font-size:10px; font-weight:700; letter-spacing:.07em;
+      padding:3px 10px; border-radius:100px; text-transform:uppercase; white-space:nowrap;
+    }
+    .pill-canon    { background:var(--green-glow);  color:var(--green);  }
+    .pill-upcoming { background:var(--amber-glow);  color:var(--amber);  }
+    .pill-progress { background:var(--accent-glow); color:var(--accent); }
+
+    .tl-summary { padding:0 18px 14px; font-size:13px; color:var(--text-2); line-height:1.65; }
+    .tl-hint    { padding:0 18px 12px; font-size:11px; color:var(--text-muted); font-style:italic; }
+
+    .tl-details {
+      max-height:0; overflow:hidden;
+      transition: max-height .35s ease, padding .2s;
+      border-top: 1px solid transparent;
+    }
+    .tl-details.open {
+      max-height:600px;
+      border-top-color: var(--glass-border);
+      padding: 18px;
+    }
+    .detail-block { margin-bottom:14px; }
+    .detail-block:last-child { margin-bottom:0; }
+    .detail-block-label { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); margin-bottom:8px; }
+    .tag-row { display:flex; flex-wrap:wrap; gap:6px; }
+    .tag {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius:6px; padding:3px 10px;
+      font-size:12px; color:var(--text-2); line-height:1.5;
+    }
+
+    /* ════════════════════════════════════════════════════
+       TAB 2 — UNIVERSE MAP
+    ════════════════════════════════════════════════════ */
+    .universe-panel { padding-top:36px; }
+    .universe-header { padding:0 28px; margin-bottom:0; display:flex; align-items:flex-end; justify-content:space-between; }
+    .universe-hint  { font-size:12px; color:var(--text-muted); margin-bottom:18px; padding:0 28px; }
+
+    .universe-scroll { overflow:auto; padding:0 0 20px; }
+    .universe-map {
+      position:relative;
+      width:1480px; height:780px;
+      margin:0;
+      background:
+        radial-gradient(ellipse 30% 40% at 22% 50%, rgba(96,165,250,.03) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 40% at 78% 50%, rgba(201,160,255,.03) 0%, transparent 60%);
+    }
+
+    /* star field via canvas overlay */
+    #star-canvas { position:absolute; inset:0; pointer-events:none; }
+
+    /* galaxy labels */
+    .galaxy-label {
+      position:absolute; font-size:10px; font-weight:600;
+      text-transform:uppercase; letter-spacing:.18em;
+      color:var(--text-muted); opacity:.5; pointer-events:none; user-select:none;
+    }
+
+    /* connection SVG */
+    #conn-svg { position:absolute; inset:0; pointer-events:none; overflow:visible; }
+    .conn-path {
+      fill:none; stroke:rgba(255,255,255,0.06); stroke-width:1.5;
+      stroke-dasharray:4 6; transition: stroke .2s;
+    }
+    .conn-path.lit { stroke:rgba(201,160,255,0.25); stroke-dasharray:none; }
+
+    /* world nodes */
+    .world-node {
+      position:absolute; width:170px;
+      cursor:pointer;
+    }
+    .world-node .glass-card { padding:14px 16px; }
+    .world-node:hover .glass-card { border-color:var(--glass-border-h); transform:none; }
+
+    .wn-head   { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+    .wn-name   { font-family:'Playfair Display',serif; font-size:14px; font-weight:600; }
+    .wn-sub    { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; }
+    .wn-desc   { font-size:11px; color:var(--text-2); line-height:1.5; margin-top:6px; display:none; }
+
+    /* world detail overlay */
+    .world-detail-overlay {
+      position:fixed; inset:0; z-index:400;
+      background:rgba(4,4,10,.7); backdrop-filter:blur(8px);
+      display:none; align-items:center; justify-content:center;
+      padding:24px;
+    }
+    .world-detail-overlay.open { display:flex; }
+    .world-detail-card {
+      background:var(--surface-solid);
+      border:1px solid var(--glass-border-h);
+      border-radius:18px; padding:32px; max-width:480px; width:100%;
+      animation:fadeUp .2s ease;
+    }
+    .wdc-close {
+      float:right; background:rgba(255,255,255,.06); border:none; border-radius:6px;
+      color:var(--text-2); padding:4px 10px; font-size:13px; margin-left:12px;
+    }
+    .wdc-close:hover { background:rgba(255,255,255,.1); color:var(--text); }
+    .wdc-galaxy { font-size:10px; text-transform:uppercase; letter-spacing:.14em; color:var(--text-muted); margin-bottom:8px; }
+    .wdc-title  { font-family:'Playfair Display',serif; font-size:24px; margin-bottom:6px; }
+    .wdc-sub    { font-size:12px; color:var(--text-2); margin-bottom:16px; }
+    .wdc-desc   { font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:18px; }
+    .wdc-details li {
+      font-size:13px; color:var(--text-2); line-height:1.6;
+      padding:4px 0 4px 14px; border-bottom:1px solid var(--glass-border);
+      position:relative;
+    }
+    .wdc-details li::before { content:'—'; position:absolute; left:0; color:var(--text-muted); }
+    .wdc-details li:last-child { border-bottom:none; }
+
+    /* ════════════════════════════════════════════════════
+       TAB 3 — ISSUES
+    ════════════════════════════════════════════════════ */
+    .issues-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
+      gap:18px;
+    }
+    .issue-card { position:relative; overflow:hidden; }
+    .issue-card .glass-card { height:100%; display:flex; flex-direction:column; }
+    .issue-num-bg {
+      position:absolute; top:8px; right:14px;
+      font-family:'Playfair Display',serif; font-size:88px; font-weight:700;
+      color:rgba(255,255,255,0.025); line-height:1;
+      pointer-events:none; user-select:none;
+    }
+    .issue-body { padding:22px 22px 14px; flex:1; position:relative; z-index:1; }
+    .issue-meta { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .issue-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--accent); letter-spacing:.1em; }
+    .issue-title { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:4px; }
+    .issue-byline { font-size:12px; color:var(--accent); font-style:italic; margin-bottom:10px; opacity:.7; }
+    .issue-summary { font-size:13px; color:var(--text-2); line-height:1.65; }
+    .issue-footer {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 22px; border-top:1px solid var(--glass-border);
+      background:rgba(0,0,0,.15);
+    }
+    .issue-pages  { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); }
+    .issue-status { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:500; }
+
+    /* ════════════════════════════════════════════════════
+       TAB 4 — SCRIPT
+    ════════════════════════════════════════════════════ */
+    .script-list { display:flex; flex-direction:column; gap:8px; }
+    .script-item { overflow:hidden; }
+
+    .script-head {
+      display:flex; align-items:center; gap:14px;
+      padding:15px 20px; cursor:pointer;
+      transition:background .18s; user-select:none;
+    }
+    .script-head:hover { background:rgba(255,255,255,.03); }
+    .script-item.open .script-head {
+      background:rgba(255,255,255,.03);
+      border-bottom:1px solid var(--glass-border);
+    }
+    .script-iss   { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent); min-width:64px; }
+    .script-title { flex:1; font-family:'Playfair Display',serif; font-size:15px; }
+    .script-pg    { font-size:11px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
+    .script-chevron { font-size:10px; color:var(--text-muted); transition:transform .2s; }
+    .script-item.open .script-chevron { transform:rotate(180deg); }
+
+    .script-body { display:none; padding:24px; max-height:600px; overflow-y:auto; }
+    .script-item.open .script-body { display:block; }
+    .script-pre {
+      font-family:'JetBrains Mono',monospace; font-size:12px;
+      line-height:1.85; color:var(--text-2); white-space:pre-wrap; word-break:break-word;
+    }
+    .script-tbd { font-size:13px; color:var(--text-muted); font-style:italic; line-height:1.6; }
+
+    /* ════════════════════════════════════════════════════
+       TAB 5 — PROJECTS
+    ════════════════════════════════════════════════════ */
+    .kanban { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:start; }
+    .kanban-col {}
+    .kanban-col-head {
+      display:flex; align-items:center; gap:8px;
+      margin-bottom:14px; padding:0 2px;
+    }
+    .kanban-col-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--text-2); }
+    .kanban-cards { display:flex; flex-direction:column; gap:10px; }
+
+    .k-card { padding:16px 18px; border-left:3px solid transparent; cursor:default; }
+    .k-card-purple { border-left-color:var(--accent); }
+    .k-card-blue   { border-left-color:var(--blue);   }
+    .k-card-amber  { border-left-color:var(--amber);  }
+
+    .k-tag {
+      display:inline-block; font-size:10px; font-weight:600; text-transform:uppercase;
+      letter-spacing:.07em; padding:2px 8px; border-radius:100px; margin-bottom:9px;
+    }
+    .k-tag-purple { background:var(--accent-glow); color:var(--accent); }
+    .k-tag-blue   { background:var(--blue-glow);   color:var(--blue);   }
+    .k-tag-amber  { background:var(--amber-glow);  color:var(--amber);  }
+    .k-title { font-family:'Playfair Display',serif; font-size:14px; margin-bottom:5px; }
+    .k-desc  { font-size:12px; color:var(--text-2); line-height:1.6; }
+
+    /* ════════════════════════════════════════════════════
+       TAB 6 — NOTES
+    ════════════════════════════════════════════════════ */
+    .notes-layout {
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:18px;
+      height:calc(100vh - var(--header-h) - var(--tab-h) - 140px);
+      min-height:400px;
+    }
+
+    .notes-sidebar { display:flex; flex-direction:column; gap:8px; overflow-y:auto; }
+    .notes-sidebar-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .btn-new-note {
+      background:var(--accent); color:#07070c;
+      border:none; border-radius:100px; padding:7px 16px;
+      font-size:12px; font-weight:600; letter-spacing:.02em;
+      transition:opacity .18s;
+    }
+    .btn-new-note:hover { opacity:.85; }
+
+    .note-item {
+      padding:14px 16px; cursor:pointer; transition:border-color .18s, background .18s;
+    }
+    .note-item.active { border-color:var(--accent); background:var(--accent-glow); }
+    .note-item-title { font-size:13px; font-weight:500; color:var(--text); margin-bottom:4px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .note-item-preview { font-size:11px; color:var(--text-muted); overflow:hidden;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.5; }
+
+    .notes-detail { overflow:hidden; display:flex; flex-direction:column; }
+    .notes-detail.glass-card { padding:0; }
+
+    .note-view { padding:28px 30px; height:100%; overflow-y:auto; }
+    .note-view-empty { display:flex; align-items:center; justify-content:center; height:100%; }
+    .note-view-empty-text { font-size:13px; color:var(--text-muted); font-style:italic; }
+    .note-view-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; }
+    .note-view-title { font-family:'Playfair Display',serif; font-size:20px; flex:1; }
+    .note-actions { display:flex; gap:8px; flex-shrink:0; margin-left:12px; }
+    .btn-note-action {
+      background:rgba(255,255,255,.06); border:1px solid var(--glass-border);
+      border-radius:7px; color:var(--text-2); padding:5px 12px; font-size:12px;
+      transition:all .18s;
+    }
+    .btn-note-action:hover { background:rgba(255,255,255,.1); color:var(--text); }
+    .btn-note-delete { border-color:rgba(248,113,113,.2); }
+    .btn-note-delete:hover { background:rgba(248,113,113,.1); color:var(--red); }
+    .note-view-body { font-size:13px; color:var(--text-2); line-height:1.8; white-space:pre-wrap; }
+
+    /* note form */
+    .note-form { padding:28px 30px; display:flex; flex-direction:column; gap:14px; height:100%; }
+    .note-form-title { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:8px; }
+    .note-form input, .note-form textarea {
+      background:rgba(255,255,255,.04); border:1px solid var(--glass-border);
+      border-radius:9px; color:var(--text); padding:12px 14px; font-size:13px; outline:none;
+      transition:border-color .18s;
+    }
+    .note-form input:focus, .note-form textarea:focus { border-color:rgba(201,160,255,.4); }
+    .note-form textarea { flex:1; resize:none; line-height:1.7; min-height:200px; }
+    .note-form-btns { display:flex; gap:10px; }
+    .btn-save-note {
+      background:var(--accent); color:#07070c; border:none;
+      border-radius:100px; padding:9px 22px; font-size:13px; font-weight:600; transition:opacity .18s;
+    }
+    .btn-save-note:hover { opacity:.85; }
+    .btn-cancel-note {
+      background:transparent; border:1px solid var(--glass-border);
+      color:var(--text-2); border-radius:100px; padding:9px 22px; font-size:13px; transition:all .18s;
+    }
+    .btn-cancel-note:hover { border-color:var(--glass-border-h); color:var(--text); }
+
+    /* ════════════════════════════════════════════════════
+       FLOATING BOTTOM BAR
+    ════════════════════════════════════════════════════ */
+    #bottom-bar {
+      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      background:rgba(10,10,18,0.88);
+      backdrop-filter:blur(24px);
+      border:1px solid var(--glass-border);
+      border-radius:100px;
+      padding:10px 22px;
+      display:none; align-items:center; gap:20px;
+      z-index:300;
+      box-shadow:0 8px 40px rgba(0,0,0,.4);
+      white-space:nowrap;
+    }
+    #bottom-bar.on { display:flex; }
+    .bb-tab  { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); }
+    .bb-sep  { width:1px; height:16px; background:var(--glass-border); }
+    .bb-stat { font-size:11px; color:var(--text-muted); }
+    .bb-dots { display:flex; align-items:center; gap:12px; }
+    .bb-dot-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-muted); }
+
+    /* ════════════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .kanban { grid-template-columns:1fr; }
+      .notes-layout { grid-template-columns:1fr; height:auto; }
+      .notes-detail { min-height:400px; }
+    }
+    @media (max-width: 600px) {
+      .tab-panel { padding:24px 16px 100px; }
+      .app-header { padding:0 16px; }
+      .tab-nav { padding:0 16px; }
+      .header-email { display:none; }
+      .issues-grid { grid-template-columns:1fr; }
+      #bottom-bar { bottom:12px; padding:8px 16px; gap:12px; }
+      .bb-dots { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     LOGIN
+════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <span class="login-glyph">◈</span>
+      <div class="login-title">Bad Kids</div>
+      <div class="login-sub">Writer's Hub</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-mode="signin">Sign In</button>
+      <button class="auth-tab" data-mode="signup">Sign Up</button>
+    </div>
+    <div class="form-field">
+      <label class="form-label" for="inp-email">Email</label>
+      <input class="form-input" type="email" id="inp-email" placeholder="your@email.com" autocomplete="email">
+    </div>
+    <div class="form-field">
+      <label class="form-label" for="inp-pass">Password</label>
+      <input class="form-input" type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button id="auth-btn" class="btn-primary">Sign In</button>
+    <div id="auth-err" class="auth-msg error"></div>
+    <div id="auth-ok"  class="auth-msg ok"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     APP
+════════════════════════════════════════════════════ -->
+<div id="app">
+  <header class="app-header">
+    <div class="header-logo">◈ Bad Kids — Writer's Hub</div>
+    <div class="header-right">
+      <span class="header-email" id="hdr-email"></span>
+      <button id="btn-signout" class="btn-signout">Sign Out</button>
+    </div>
+  </header>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="timeline"><span class="tab-icon">◎</span>Timeline</button>
+    <button class="tab-btn" data-tab="universe"><span class="tab-icon">⊕</span>Universe Map</button>
+    <button class="tab-btn" data-tab="issues"><span class="tab-icon">▤</span>Issues</button>
+    <button class="tab-btn" data-tab="script"><span class="tab-icon">≡</span>Script</button>
+    <button class="tab-btn" data-tab="projects"><span class="tab-icon">⊟</span>Projects</button>
+    <button class="tab-btn" data-tab="notes"><span class="tab-icon">◇</span>Notes</button>
+  </nav>
+
+  <!-- TIMELINE -->
+  <div class="tab-panel active" id="panel-timeline">
+    <div class="panel-title">Story Timeline</div>
+    <div class="panel-subtitle">16 story beats — click a node to expand details.</div>
+    <div class="tl-wrap">
+      <div class="tl-spine"></div>
+      <div id="tl-nodes"></div>
+    </div>
+  </div>
+
+  <!-- UNIVERSE MAP -->
+  <div class="tab-panel full-width universe-panel" id="panel-universe">
+    <div class="universe-header">
+      <div>
+        <div class="panel-title" style="padding:0 28px">Universe Map</div>
+      </div>
+    </div>
+    <div class="universe-hint">Click any world for details. Scroll to explore.</div>
+    <div class="universe-scroll">
+      <div class="universe-map" id="universe-map">
+        <canvas id="star-canvas"></canvas>
+        <svg id="conn-svg"></svg>
+        <!-- world nodes injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ISSUES -->
+  <div class="tab-panel" id="panel-issues">
+    <div class="panel-title">Issues</div>
+    <div class="panel-subtitle">6 issues in production.</div>
+    <div class="issues-grid" id="issues-grid"></div>
+  </div>
+
+  <!-- SCRIPT -->
+  <div class="tab-panel" id="panel-script">
+    <div class="panel-title">Scripts</div>
+    <div class="panel-subtitle">Dialogue and scene breakdowns by issue.</div>
+    <div class="script-list" id="script-list"></div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="tab-panel" id="panel-projects">
+    <div class="panel-title">Projects</div>
+    <div class="panel-subtitle">What's being built, what's queued, what's brewing.</div>
+    <div class="kanban" id="kanban"></div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="tab-panel" id="panel-notes">
+    <div class="panel-title">Notes &amp; Ideas</div>
+    <div class="panel-subtitle" style="margin-bottom:20px">Story notes, writing principles, open questions.</div>
+    <div class="notes-layout">
+      <div class="notes-sidebar" id="notes-sidebar">
+        <div class="notes-sidebar-top">
+          <div class="section-label">All Notes</div>
+          <button class="btn-new-note" id="btn-new-note">+ New</button>
+        </div>
+        <div id="note-list"></div>
+      </div>
+      <div class="notes-detail glass-card" id="notes-detail">
+        <div class="note-view" id="note-view">
+          <div class="note-view-empty">
+            <div class="note-view-empty-text">Select a note to read it.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- world detail overlay -->
+<div class="world-detail-overlay" id="world-overlay">
+  <div class="world-detail-card" id="world-detail-card">
+    <button class="wdc-close" id="world-close">✕ Close</button>
+    <div class="wdc-galaxy" id="wdc-galaxy"></div>
+    <div class="wdc-title" id="wdc-title"></div>
+    <div class="wdc-sub" id="wdc-sub"></div>
+    <div class="wdc-desc" id="wdc-desc"></div>
+    <ul class="wdc-details" id="wdc-details"></ul>
+  </div>
+</div>
+
+<!-- floating bar -->
+<div id="bottom-bar">
+  <span class="bb-tab" id="bb-tab-name">Timeline</span>
+  <div class="bb-sep"></div>
+  <div class="bb-dots">
+    <span class="bb-dot-item"><span class="dot dot-green"></span>6 Issues</span>
+    <span class="bb-dot-item"><span class="dot dot-green"></span>8 Canon Beats</span>
+    <span class="bb-dot-item"><span class="dot dot-amber"></span>7 Upcoming</span>
+    <span class="bb-dot-item"><span class="dot dot-purple"></span>1 In Progress</span>
+  </div>
+  <div class="bb-sep"></div>
+  <span class="bb-stat">140+ Pages</span>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════
+const TIMELINE = [
+  { num:1, title:'Opening', period:'June 2024', status:'CANON',
+    summary:"Barsam's dream of the car crash with his dad. Wakes at 2:39 PM. Group gathers at Ethan's garage, heads to dinner.",
+    details:[
+      { label:'Key Scenes', items:['The Dream — Barsam and his dad argue about wasted potential','Semi truck. Impact.','Car ride with Kian and Kamran','Ethan\'s garage with Liam','Restaurant — college plans, ringtone incident'] },
+      { label:'Characters', items:['Barsam','Kamran','Kian','Ethan','Jackson','Liam','Barsam\'s dad'] },
+      { label:'Themes', items:['Coming of age','Wasted potential','Brotherhood','Grief'] }
+    ]
+  },
+  { num:2, title:'Power Discovery', period:'June 2024', status:'CANON',
+    summary:'Each member discovers powers in a comedic montage.',
+    details:[
+      { label:'Manifestations', items:['Kian gravity-repels mouthwash','Kamran slams into wall ("OW FUCK")','Ethan hears thoughts — puts on headphones','Jackson vaporizes backyard','Barsam swaps with objects, 8×8×8 green dome appears'] }
+    ]
+  },
+  { num:3, title:'Graduation Day', period:'June 2024', status:'CANON',
+    summary:'Group hides powers during ceremony. Ethan: headphones under cap. Kamran: slow motion. Jackson skips. First surveillance cut.',
+    details:[
+      { label:'Key Beats', items:['Kian/Barsam sense each other hiding something','Post-ceremony reveal','"Oh my god all of you have powers."','Group cracks up'] },
+      { label:'Surveillance', items:['"Subjects on the move."','Group on monitor watched by suits'] }
+    ]
+  },
+  { num:4, title:'Training', period:'Summer 2024', status:'CANON',
+    summary:"Summer training with whiteboard tracking. Everyone improves except Barsam. Ethan discovers emotion-channeled abilities.",
+    details:[
+      { label:'Breakthroughs', items:['Ethan: emotion + music = power amplifier','Barsam: can barely hold Link for seconds'] },
+      { label:'Apartment', items:['Mom references "the accident."','Argument about future','Tries to cast Link — fails'] }
+    ]
+  },
+  { num:5, title:'August 26th', period:'August 2024', status:'CANON',
+    summary:"Coordinated government raid across three cities. Ethan captured. Barsam invents coil release, escapes, follows Jackson.",
+    details:[
+      { label:'The Raid', items:['Simultaneous strike across three cities','Last normal moment: telepathic joke in class','Ethan captured'] },
+      { label:"Barsam's Breakthrough", items:['Coil release — condenses energy between objects, blasts through wall','Discovers spatial sense'] }
+    ]
+  },
+  { num:6, title:'Black Site', period:'August 2024', status:'CANON',
+    summary:"Barsam and Jackson track friends to desert compound. Infiltrate, get captured. AEWOP revealed. Doug offers deal.",
+    details:[
+      { label:'AEWOP', items:['Anomalous Entity Watch and Observation Program','Boys classified as "variables"','Standard protocol: neutralization'] },
+      { label:'Key Lines', items:["Kamran's compliance bluff",'Barsam\'s "then kill us."','"They are the key to everything." — Doug'] },
+      { label:'June 6th', items:['Incidents surged globally same day powers manifested'] }
+    ]
+  },
+  { num:7, title:'Training Day', period:'September 2024', status:'CANON',
+    summary:"First day at The Barn — 70K sq ft facility. Jackson destroys Q-7000. Group explores. Ethan's nighttime telepathy hell revealed.",
+    details:[
+      { label:'Exploration', items:['Kamran fixes security pipeline, breaks keyboards','Jackson destroys Cheyenne Mountain vault replica','Kian lifts 50lbs osmium','Ethan/Barsam gather intel via telepathy'] },
+      { label:'Reveal', items:['Doug Has Powers: clicks hand, generates pulse knocking Kamran back'] }
+    ]
+  },
+  { num:8, title:'The Pit', period:'September 2024', status:'CANON',
+    summary:"Baseline trials — 100 robots each. Kamran blazes through. Kian: 3 moves. Jackson: one blast. Ethan: telekinetic blossom. Barsam fails.",
+    details:[
+      { label:'Results', items:['Kamran: full clear','Kian: full clear, 3 moves','Jackson: full clear, single explosion','Ethan: partial, passed out','Barsam: pulled by Doug'] },
+      { label:"Barsam's Lowest", items:['Throws marble bag across locker room. "MOTHERFU—"'] }
+    ]
+  },
+  { num:9,  title:'San Diego',    period:'2024',      status:'UPCOMING', summary:'Details forthcoming.', details:[] },
+  { num:10, title:'Superstars',   period:'2024',      status:'UPCOMING', summary:'Details forthcoming.', details:[] },
+  { num:11, title:'Infiltration', period:'2024–2025', status:'UPCOMING', summary:'Details forthcoming.', details:[] },
+  { num:12, title:'Boiling Point',period:'2025',      status:'UPCOMING', summary:'Details forthcoming.', details:[] },
+  { num:13, title:'Kidnapping',   period:'2025',      status:'UPCOMING', summary:'Details forthcoming.', details:[] },
+  { num:14, title:'Rescue',       period:'2025',      status:'UPCOMING', summary:'Details forthcoming.', details:[] },
+  { num:15, title:'First Blood',  period:'2025–2026', status:'UPCOMING', summary:'Details forthcoming.', details:[] },
+  { num:16, title:'In Progress',  period:'—',         status:'IN PROGRESS', summary:'Currently being written.', details:[] }
+];
+
+const WORLDS = [
+  { id:'earth',       name:'Earth',       galaxy:'Milky Way',         x:60,   y:290, color:'blue',
+    subtitle:'Home World',
+    desc:'Marginally above real-world Kardashev scale. Only race without powers. 60–75% of story takes place here.',
+    details:["Southern California — Barsam's apartment, Ethan's house, restaurant, community college","AEWOP compound — The Barn, The Pit","Only intelligent race without inherent powers"] },
+  { id:'xvarah',      name:'Xvarah',      galaxy:'Milky Way',         x:290,  y:110, color:'purple',
+    subtitle:'Xvarnhan Homeworld',
+    desc:'Constellation of planets within Dyson rings. Final battle backdrop. Mega dome and synthetic world.',
+    details:['Multiple planets connected by Dyson rings','Mega dome and synthetic environment','Location of the final battle','Xvarnhan civilization center'] },
+  { id:'siahgaar',    name:'Siahgaar',    galaxy:'Milky Way',         x:80,   y:510, color:'red',
+    subtitle:'Contested Gateway',
+    desc:'Bloody gateway world between two warring factions. Control falls to humanity — catalyst for the final saga.',
+    details:['Located between two warring factions','Control passes to humanity','Described as a "bloody gateway"','Catalyst for the final saga'] },
+  { id:'umbra-malo',  name:'Umbra Malo',  galaxy:'Between Galaxies',  x:610,  y:320, color:'cyan',
+    subtitle:'The Rift',
+    desc:'In the rift between galaxies. Black winter. Ruins of a once-prosperous world with voids in space. No one can confirm how they discovered it.',
+    details:['Located in the intergalactic rift','"Black winter" environment','Ruins of a once-prosperous civilization','Voids in space surround it','Discovery origin unknown — a genuine mystery'] },
+  { id:'mihrvar',     name:'Mihrvar',     galaxy:'Andromeda',         x:900,  y:120, color:'amber',
+    subtitle:'The Great Forge',
+    desc:'Entirely a colossal forge. Where Xvarnhans craft everything from weapons to megastructures.',
+    details:['Entirely converted into a manufacturing world','Produces weapons, megastructures, ships','Key strategic Xvarnhan asset','Critical to their military capacity'] },
+  { id:'sepherasari', name:'Sepherasari', galaxy:'Andromeda',         x:1100, y:300, color:'blue',
+    subtitle:'Water World',
+    desc:'Water mass forming its own solar system. Uncontrollable fauna. Held by a hydro star.',
+    details:['Massive water body with its own gravitational pull','Held in orbit by a "hydro star"','Contains uncontrollable fauna','Part of the Andromeda cluster'] },
+  { id:'zafar-nayu',  name:'Zafar Nayu', galaxy:'Andromeda',          x:910,  y:500, color:'green',
+    subtitle:'Fungal World',
+    desc:'Midnight fungal world. Living organism. Telepathic hive mind. Sends adaptive spore predators.',
+    details:['Entire planet is a single living organism','Midnight-colored fungal landscape','Telepathic hive mind intelligence','Deploys adaptive spore-based predators'] }
+];
+
+const CONNECTIONS = [
+  { from:'earth',      to:'siahgaar'    },
+  { from:'earth',      to:'umbra-malo'  },
+  { from:'siahgaar',   to:'umbra-malo'  },
+  { from:'xvarah',     to:'umbra-malo'  },
+  { from:'umbra-malo', to:'mihrvar'     },
+  { from:'umbra-malo', to:'sepherasari' },
+  { from:'umbra-malo', to:'zafar-nayu'  },
+  { from:'mihrvar',    to:'sepherasari' },
+  { from:'sepherasari',to:'zafar-nayu'  }
+];
+
+const ISSUES = [
+  { num:1, title:'The Day Before', pages:'~24', status:'Dialogue Written', statusColor:'green',
+    summary:'The Dream. Car ride. Garage. Restaurant. Power discovery. Graduation. The Reveal.' },
+  { num:2, title:'August 26th',    pages:'~23', status:'Outlined',         statusColor:'amber',
+    summary:"Training. Ethan's breakthrough. Barsam's frustration. Apartment. College. Raid. Escape." },
+  { num:3, title:'The Compound',   pages:'~24', status:'Outlined',         statusColor:'amber',
+    summary:"Jackson's house. Stakeout. Port. Desert compound. Infiltration. Ambush. Captured." },
+  { num:4, title:'Variables',      pages:'~22', status:'Dialogue Written', statusColor:'green',
+    summary:'AEWOP pitch. Deliberation. Doug\'s confession. Negotiation. "Then kill us." Flight home.' },
+  { num:5, title:'The Barn',       pages:'~24', status:'Dialogue Written', statusColor:'green',
+    summary:'Morning rendezvous. Kian learns to fly. Doug confrontation. Barn tour. Exploration.' },
+  { num:6, title:'The Pit',        pages:'~28', status:'Dialogue Written', statusColor:'green',
+    summary:"Baseline trials. All five runs. Barsam's failure. Marble bag." }
+];
+
+const SCRIPTS = [
+  { num:1, title:'The Day Before', pages:'~24', content:`ISSUE #1 — THE DAY BEFORE
+
+PAGES 1-3: THE DREAM
+
+DAD: Seriously? Another full week — you ditched school? Why?!
+BARSAM: What difference does it make? I'm passing everything with A's.
+DAD: That's the POINT — you always do the bare minimum!
+BARSAM: I couldn't have gone to a four-year anyway. Where would I have found the money?
+DAD: Did you ever go hungry? Roof not overhead?
+BARSAM: You're SOOO right, Dad — that's why we have a thousand dollars to our name and live off food stamps.
+DAD: Bullshit. The only reason you aren't anywhere right now is that you didn't bother to try.
+DAD (softer): You're smart. You didn't give close to your best once.
+BARSAM: She has a funny way of showing all this belief.
+DAD: You know she loves — she jus—
+[FULL SPREAD: Semi truck. Impact.]
+[Barsam wakes up.]
+
+PAGES 3-6: CAR RIDE / ETHAN'S GARAGE
+
+KIAN: So nice of you to join us, sunshine!
+KAMRAN: How do you still look like shit?
+KAMRAN: Oh shit. Kayla got into UCLA.
+KIAN: I get waitlisted and KAYLA gets in.
+BARSAM: Damn shadow government at it again.
+BARSAM: I just know it's going to be awkward with all my family stuff.
+BARSAM: 'Oh, we're so sorry your dad brutally died.'
+
+[Ethan's garage — Liam on bass]
+ETHAN: Liam, for the umpteenth time, it's an A chord!
+JACKSON enters with plate of food.
+ETHAN: Just take the fridge next time, DAMN!
+KAMRAN: Jackson, you greedy cow!
+
+PAGES 7-10: RESTAURANT
+
+ALL: Diet Coke. JACKSON: Arnold Palmer.
+ETHAN: I can't believe it's finally over.
+KAMRAN: I'm not paying for your food.
+JACKSON: Et tu, Brute.
+BARSAM: I still can't believe you're moving in with them.
+KAMRAN: Hey — remember when your phone went off in history?
+[Ethan spits drink on Jackson]
+BARSAM: Just say you lost the argument.` },
+  { num:2, title:'August 26th',  pages:'~23', content:null },
+  { num:3, title:'The Compound', pages:'~24', content:null },
+  { num:4, title:'Variables',    pages:'~22', content:null },
+  { num:5, title:'The Barn',     pages:'~24', content:null },
+  { num:6, title:'The Pit',      pages:'~28', content:null }
+];
+
+const PROJECTS = {
+  inprogress: [
+    { title:'Issue #7 — [Untitled]', desc:"Next issue after The Pit. Barsam's response to failure. The morning after." },
+    { title:'Dialogue Pass — Issues 2 & 3', desc:'Converting outlined issues to full screenplay dialogue.' }
+  ],
+  upnext: [
+    { title:'San Diego Arc', desc:"Kian's storyline at SDSU. Separation from the group. What happens when they're not together?" },
+    { title:'First Mission', desc:"The group's first AEWOP deployment against an actual anomaly." },
+    { title:"Barsam's Power Evolution", desc:'Developing Link beyond coil releases and spatial sense. What is it really?' }
+  ],
+  ideas: [
+    { title:'Xvarnhan Introduction', desc:'When and how to introduce the main antagonist civilization. First contact moment.' },
+    { title:'Ethan Solo Issue', desc:"A full issue from Ethan's POV, showing the telepathic nightmare in real time." },
+    { title:'Flashback Issue', desc:'Pre-powers memories. The group in freshman/sophomore year. Who were they?' },
+    { title:"Doug's Backstory", desc:'Who is Doug? Why does he have powers? What does he know that he isn\'t saying?' }
+  ]
+};
+
+const DEFAULT_NOTES = [
+  { id:'n1', title:"Barsam's Power — Spatial Imprint Theory",
+    body:`Link as a spatial power leaves faint positional "imprints" of people who've been inside the domain — a weak directional tug, not GPS. Scales with domain size. Currently very weak.
+
+This explains why his power resisted conventional training: they were testing it like a weapon when it's fundamentally something else. It isn't force. It's presence.` },
+  { id:'n2', title:'Therefore, But — Structural Principle',
+    body:`Key writing principle for the series. Instead of "and then" connecting loose segments, scenes should flow:
+
+therefore this happened → but then this happened → therefore this happened
+
+Every scene should cause the next or complicate the previous. If you can replace a transition with "and then" instead of "therefore" or "but," the scene is connective tissue, not story.` },
+  { id:'n3', title:"Ethan's Power Scaling Problem",
+    body:`Ethan gets stronger in emotional distress, meaning his worst moments make him most dangerous. This creates a temptation to stay in pain because it makes you powerful.
+
+Ties directly to Sin and Addiction themes. Guitar/music is the controlled conduit — without it, raw fear becomes the trigger. The question isn't whether he'll break. It's what breaks him.` },
+  { id:'n4', title:"Doug's Pulse — Implications",
+    body:`Doug clicked his hand and generated a pulse that knocked Kamran back. This confirms he's not a normal human.
+
+Is he a former anomaly? Is that why he understands them? Is that why AEWOP trusts him to handle them? Why did he say the boys are "the only things we've encountered that haven't been completely batshit crazy"?` },
+  { id:'n5', title:"Kian's Silence",
+    body:`Kian has been notably quiet through the AEWOP negotiation and most group decisions. He observes, he laughs at the right moments, but he rarely speaks in high-stakes situations.
+
+Is this intentional characterization? What is Kian processing that he's not sharing? The lightest member carries something heaviest.` },
+  { id:'n6', title:'The Ringtone',
+    body:`Never reveal what the ringtone actually was. The comedy is in the reaction, not the content. Let the reader's imagination do the work.
+
+The whole table falling apart is funnier if the actual sound is left unknown. Some things are better as negative space.` },
+  { id:'n7', title:'Visual Language — Panel Counts',
+    body:`Each Pit run has a distinct panel/page allocation that reflects the character:
+
+• Kamran — most panels (effort, chaos, movement)
+• Kian — fewer panels (efficiency, precision)
+• Jackson — one full page (overwhelming singular moment)
+• Ethan — a spread (emotional explosion)
+• Barsam — a degrading 5-panel sequence (diminishing returns, shrinking presence)
+
+The visual structure IS the storytelling. You don't need to say he failed. The page count says it.` }
+];
+
+// ════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════
+let sb = null;
+let authMode = 'signin';
+
+function initSupabase() {
+  try {
+    sb = window.supabase.createClient(
+      'https://ijrrvkcwifzgnrelzwxq.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqcnJ2a2N3aWZ6Z25yZWx6d3hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MDQ1MjksImV4cCI6MjA5MzE4MDUyOX0.0B0l1CfrTOFhdl5HsI-b1d68WozE_K5SB7PgRQvWGeU'
+    );
+    sb.auth.onAuthStateChange((_e, session) => {
+      if (session) showApp(session.user.email);
+      else         showLogin();
+    });
+  } catch(e) {
+    setAuthErr('Could not connect to auth service. Check your internet connection and refresh.');
+  }
+}
+
+function showApp(email) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('on');
+  document.getElementById('bottom-bar').classList.add('on');
+  document.getElementById('hdr-email').textContent = email;
+}
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('bottom-bar').classList.remove('on');
+}
+function setAuthErr(msg) {
+  const el = document.getElementById('auth-err');
+  el.textContent = msg; el.classList.add('show');
+}
+
+// toggle
+document.querySelectorAll('.auth-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    authMode = btn.dataset.mode;
+    document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('auth-btn').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+    document.getElementById('auth-err').classList.remove('show');
+    document.getElementById('auth-ok').classList.remove('show');
+  });
+});
+
+document.getElementById('auth-btn').addEventListener('click', async () => {
+  const email = document.getElementById('inp-email').value.trim();
+  const pass  = document.getElementById('inp-pass').value;
+  const errEl = document.getElementById('auth-err');
+  const okEl  = document.getElementById('auth-ok');
+  const btn   = document.getElementById('auth-btn');
+  errEl.classList.remove('show'); okEl.classList.remove('show');
+
+  if (!email || !pass) { setAuthErr('Please enter your email and password.'); return; }
+  if (!sb) { setAuthErr('Auth service not loaded. Please refresh the page.'); return; }
+
+  btn.disabled = true; btn.textContent = '…';
+  const res = authMode === 'signin'
+    ? await sb.auth.signInWithPassword({ email, password: pass })
+    : await sb.auth.signUp({ email, password: pass });
+
+  btn.disabled = false;
+  btn.textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+
+  if (res.error) {
+    errEl.textContent = res.error.message; errEl.classList.add('show');
+  } else if (authMode === 'signup' && !res.data.session) {
+    okEl.textContent = 'Check your email to confirm your account, then sign in.';
+    okEl.classList.add('show');
+  }
+});
+
+document.getElementById('inp-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('auth-btn').click();
+});
+
+document.getElementById('btn-signout').addEventListener('click', () => sb && sb.auth.signOut());
+
+// ════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════
+const TAB_LABELS = { timeline:'Timeline', universe:'Universe Map', issues:'Issues', script:'Script', projects:'Projects', notes:'Notes' };
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    document.getElementById('bb-tab-name').textContent = TAB_LABELS[btn.dataset.tab] || '';
+    if (btn.dataset.tab === 'universe') renderUniverseMap();
+  });
+});
+
+// ════════════════════════════════════════════════════
+// RENDER — TIMELINE
+// ════════════════════════════════════════════════════
+function tlStatusInfo(s) {
+  if (s === 'CANON')       return { dot:'tl-dot-canon',    pill:'pill-canon',    label:'Canon'       };
+  if (s === 'UPCOMING')    return { dot:'tl-dot-upcoming', pill:'pill-upcoming', label:'Upcoming'    };
+  if (s === 'IN PROGRESS') return { dot:'tl-dot-progress', pill:'pill-progress', label:'In Progress' };
+  return { dot:'', pill:'', label:s };
+}
+
+function renderTimeline() {
+  const container = document.getElementById('tl-nodes');
+  TIMELINE.forEach(node => {
+    const si = tlStatusInfo(node.status);
+    const hasDetail = node.details && node.details.length > 0;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'tl-node';
+
+    const detailsHtml = hasDetail ? node.details.map(d => `
+      <div class="detail-block">
+        <div class="detail-block-label">${d.label}</div>
+        <div class="tag-row">${d.items.map(i => `<span class="tag">${i}</span>`).join('')}</div>
+      </div>`).join('') : '';
+
+    wrap.innerHTML = `
+      <div class="tl-node-dot ${si.dot}"
+           data-tip="${si.label}${node.period !== '—' ? ' · ' + node.period : ''}"></div>
+      <div class="glass-card tl-card${hasDetail ? ' expandable' : ''}">
+        <div class="tl-card-head">
+          <span class="tl-num">${String(node.num).padStart(2,'0')}</span>
+          <div class="tl-info">
+            <div class="tl-title">${node.title}</div>
+            <div class="tl-period">${node.period}</div>
+          </div>
+          <span class="tl-status-pill ${si.pill}">${si.label}</span>
+        </div>
+        <div class="tl-summary">${node.summary}</div>
+        ${hasDetail ? '<div class="tl-hint">↓ click to expand</div>' : ''}
+        <div class="tl-details">${detailsHtml}</div>
+      </div>`;
+
+    if (hasDetail) {
+      const card = wrap.querySelector('.tl-card');
+      card.addEventListener('click', function() {
+        const details = this.querySelector('.tl-details');
+        const hint    = this.querySelector('.tl-hint');
+        const opening = !details.classList.contains('open');
+        details.classList.toggle('open', opening);
+        if (hint) hint.textContent = opening ? '↑ click to collapse' : '↓ click to expand';
+      });
+    }
+    container.appendChild(wrap);
+  });
+}
+
+// ════════════════════════════════════════════════════
+// RENDER — UNIVERSE MAP
+// ════════════════════════════════════════════════════
+let universeRendered = false;
+
+function renderUniverseMap() {
+  if (universeRendered) return;
+  universeRendered = true;
+
+  const mapEl = document.getElementById('universe-map');
+  const NODE_W = 170, NODE_H = 90;
+
+  // star field
+  const canvas = document.getElementById('star-canvas');
+  canvas.width  = 1480;
+  canvas.height = 780;
+  const ctx = canvas.getContext('2d');
+  for (let i = 0; i < 220; i++) {
+    const x = Math.random() * 1480;
+    const y = Math.random() * 780;
+    const r = Math.random() * 1.2 + 0.3;
+    const a = Math.random() * 0.5 + 0.15;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fill();
+  }
+
+  // galaxy labels
+  const galaxyLabels = [
+    { text:'Milky Way',        x:220, y:50  },
+    { text:'Between Galaxies', x:590, y:50  },
+    { text:'Andromeda',        x:1020,y:50  }
+  ];
+  galaxyLabels.forEach(gl => {
+    const lbl = document.createElement('div');
+    lbl.className = 'galaxy-label';
+    lbl.textContent = gl.text;
+    lbl.style.left  = gl.x + 'px';
+    lbl.style.top   = gl.y + 'px';
+    mapEl.appendChild(lbl);
+  });
+
+  // galaxy divider lines
+  [530, 880].forEach(xp => {
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    // append to svg after it's built
+    const div = document.createElement('div');
+    div.style.cssText = `position:absolute;left:${xp}px;top:60px;bottom:60px;width:1px;background:rgba(255,255,255,0.04);pointer-events:none;`;
+    mapEl.appendChild(div);
+  });
+
+  // build world id→position map
+  const worldMap = {};
+  WORLDS.forEach(w => {
+    worldMap[w.id] = { cx: w.x + NODE_W/2, cy: w.y + NODE_H/2 };
+  });
+
+  // SVG connections
+  const svg = document.getElementById('conn-svg');
+  svg.setAttribute('width','1480');
+  svg.setAttribute('height','780');
+
+  const pathEls = {};
+  CONNECTIONS.forEach(c => {
+    const a = worldMap[c.from], b = worldMap[c.to];
+    if (!a || !b) return;
+    const dx = (b.cx - a.cx) * 0.45;
+    const d  = `M ${a.cx} ${a.cy} C ${a.cx+dx} ${a.cy}, ${b.cx-dx} ${b.cy}, ${b.cx} ${b.cy}`;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', d);
+    path.classList.add('conn-path');
+    path.dataset.from = c.from;
+    path.dataset.to   = c.to;
+    svg.appendChild(path);
+    pathEls[c.from + '|' + c.to] = path;
+    pathEls[c.to   + '|' + c.from] = path;
+  });
+
+  // world nodes
+  const dotColorMap = { blue:'dot-blue', purple:'dot-purple', red:'dot-red', amber:'dot-amber', green:'dot-green', cyan:'dot-cyan' };
+
+  WORLDS.forEach(w => {
+    const node = document.createElement('div');
+    node.className = 'world-node';
+    node.style.left = w.x + 'px';
+    node.style.top  = w.y + 'px';
+    node.dataset.id = w.id;
+
+    node.innerHTML = `
+      <div class="glass-card">
+        <div class="wn-head">
+          <span class="dot ${dotColorMap[w.color] || 'dot-muted'}" data-tip="${w.galaxy}"></span>
+          <span class="wn-name">${w.name}</span>
+        </div>
+        <div class="wn-sub">${w.subtitle}</div>
+      </div>`;
+
+    // hover: highlight connected paths
+    node.addEventListener('mouseenter', () => {
+      document.querySelectorAll('.conn-path').forEach(p => p.classList.remove('lit'));
+      Object.keys(pathEls).forEach(key => {
+        if (key.includes(w.id)) pathEls[key].classList.add('lit');
+      });
+    });
+    node.addEventListener('mouseleave', () => {
+      document.querySelectorAll('.conn-path').forEach(p => p.classList.remove('lit'));
+    });
+
+    // click: open detail overlay
+    node.addEventListener('click', () => openWorldDetail(w));
+
+    mapEl.appendChild(node);
+  });
+}
+
+function openWorldDetail(w) {
+  document.getElementById('wdc-galaxy').textContent = w.galaxy;
+  document.getElementById('wdc-title').textContent  = w.name;
+  document.getElementById('wdc-sub').textContent    = w.subtitle;
+  document.getElementById('wdc-desc').textContent   = w.desc;
+  const ul = document.getElementById('wdc-details');
+  ul.innerHTML = w.details.map(d => `<li>${d}</li>`).join('');
+  document.getElementById('world-overlay').classList.add('open');
+}
+
+document.getElementById('world-close').addEventListener('click', () => {
+  document.getElementById('world-overlay').classList.remove('open');
+});
+document.getElementById('world-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('world-overlay'))
+    document.getElementById('world-overlay').classList.remove('open');
+});
+
+// ════════════════════════════════════════════════════
+// RENDER — ISSUES
+// ════════════════════════════════════════════════════
+function renderIssues() {
+  const grid = document.getElementById('issues-grid');
+  ISSUES.forEach(issue => {
+    const card = document.createElement('div');
+    card.className = 'issue-card glass-card lift';
+    const dotClass = issue.statusColor === 'green' ? 'dot-green' : 'dot-amber';
+    card.innerHTML = `
+      <div class="issue-num-bg">${issue.num}</div>
+      <div class="issue-body">
+        <div class="issue-meta">
+          <span class="dot ${dotClass}" data-tip="${issue.status}"></span>
+          <span class="issue-label">Issue #${issue.num}</span>
+        </div>
+        <div class="issue-title">"${issue.title}"</div>
+        <div class="issue-summary">${issue.summary}</div>
+      </div>
+      <div class="issue-footer">
+        <span class="issue-pages">${issue.pages} pages</span>
+        <span class="issue-status">
+          <span class="dot ${dotClass}"></span>${issue.status}
+        </span>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════
+// RENDER — SCRIPT
+// ════════════════════════════════════════════════════
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderScript() {
+  const list = document.getElementById('script-list');
+  SCRIPTS.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'glass-card script-item';
+    const body = s.content
+      ? `<pre class="script-pre">${esc(s.content)}</pre>`
+      : `<p class="script-tbd">Script for this issue is ${ISSUES[i].status.toLowerCase()}. Full dialogue coming soon.</p>`;
+    item.innerHTML = `
+      <div class="script-head">
+        <span class="script-iss">Issue #${s.num}</span>
+        <span class="script-title">"${s.title}"</span>
+        <span class="script-pg">${s.pages}</span>
+        <span class="script-chevron">▼</span>
+      </div>
+      <div class="script-body">${body}</div>`;
+    item.querySelector('.script-head').addEventListener('click', () => item.classList.toggle('open'));
+    list.appendChild(item);
+  });
+}
+
+// ════════════════════════════════════════════════════
+// RENDER — PROJECTS
+// ════════════════════════════════════════════════════
+function renderProjects() {
+  const cols = [
+    { key:'inprogress', label:'In Progress', cardClass:'k-card-purple', tagClass:'k-tag-purple', tagText:'In Progress', dot:'dot-purple' },
+    { key:'upnext',     label:'Up Next',     cardClass:'k-card-blue',   tagClass:'k-tag-blue',   tagText:'Up Next',     dot:'dot-blue'   },
+    { key:'ideas',      label:'Ideas',       cardClass:'k-card-amber',  tagClass:'k-tag-amber',  tagText:'Idea',        dot:'dot-amber'  }
+  ];
+  const kanban = document.getElementById('kanban');
+  cols.forEach(col => {
+    const colEl = document.createElement('div');
+    colEl.className = 'kanban-col';
+    colEl.innerHTML = `
+      <div class="kanban-col-head">
+        <span class="dot ${col.dot}"></span>
+        <span class="kanban-col-label">${col.label}</span>
+      </div>
+      <div class="kanban-cards" id="kcol-${col.key}"></div>`;
+    kanban.appendChild(colEl);
+    const cardsEl = colEl.querySelector(`#kcol-${col.key}`);
+    PROJECTS[col.key].forEach(card => {
+      const c = document.createElement('div');
+      c.className = `glass-card k-card ${col.cardClass}`;
+      c.innerHTML = `
+        <span class="k-tag ${col.tagClass}">${col.tagText}</span>
+        <div class="k-title">${card.title}</div>
+        <div class="k-desc">${card.desc}</div>`;
+      cardsEl.appendChild(c);
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════
+// NOTES — localStorage
+// ════════════════════════════════════════════════════
+let notes = [];
+let activeNoteId = null;
+let noteMode = 'view'; // 'view' | 'edit' | 'new'
+
+function loadNotes() {
+  try {
+    const saved = localStorage.getItem('bk-notes');
+    notes = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_NOTES));
+  } catch { notes = JSON.parse(JSON.stringify(DEFAULT_NOTES)); }
+}
+function saveNotes() {
+  try { localStorage.setItem('bk-notes', JSON.stringify(notes)); } catch {}
+}
+function genId() { return 'n' + Date.now(); }
+
+function renderNoteList() {
+  const list = document.getElementById('note-list');
+  list.innerHTML = '';
+  notes.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'glass-card note-item' + (n.id === activeNoteId ? ' active' : '');
+    item.dataset.id = n.id;
+    item.innerHTML = `
+      <div class="note-item-title">${n.title}</div>
+      <div class="note-item-preview">${n.body}</div>`;
+    item.addEventListener('click', () => openNote(n.id));
+    list.appendChild(item);
+  });
+}
+
+function openNote(id) {
+  activeNoteId = id;
+  noteMode = 'view';
+  const note = notes.find(n => n.id === id);
+  if (!note) return;
+  renderNoteList();
+  const view = document.getElementById('note-view');
+  view.innerHTML = `
+    <div class="note-view-head">
+      <div class="note-view-title">${note.title}</div>
+      <div class="note-actions">
+        <button class="btn-note-action" id="btn-edit-note">Edit</button>
+        <button class="btn-note-action btn-note-delete" id="btn-del-note">Delete</button>
+      </div>
+    </div>
+    <div class="note-view-body">${note.body}</div>`;
+  document.getElementById('btn-edit-note').addEventListener('click', () => showNoteForm(note));
+  document.getElementById('btn-del-note').addEventListener('click', () => {
+    notes = notes.filter(n => n.id !== id);
+    saveNotes();
+    activeNoteId = null;
+    renderNoteList();
+    document.getElementById('note-view').innerHTML = '<div class="note-view-empty"><div class="note-view-empty-text">Select a note to read it.</div></div>';
+  });
+}
+
+function showNoteForm(existing) {
+  noteMode = existing ? 'edit' : 'new';
+  const view = document.getElementById('note-view');
+  view.innerHTML = `
+    <div class="note-form">
+      <div class="note-form-title">${existing ? 'Edit Note' : 'New Note'}</div>
+      <input type="text" id="nf-title" placeholder="Note title…" value="${existing ? existing.title.replace(/"/g,'&quot;') : ''}">
+      <textarea id="nf-body" placeholder="Write your note here…">${existing ? existing.body : ''}</textarea>
+      <div class="note-form-btns">
+        <button class="btn-save-note" id="btn-save-note">Save Note</button>
+        <button class="btn-cancel-note" id="btn-cancel-note">Cancel</button>
+      </div>
+    </div>`;
+  document.getElementById('btn-save-note').addEventListener('click', () => {
+    const title = document.getElementById('nf-title').value.trim();
+    const body  = document.getElementById('nf-body').value.trim();
+    if (!title) return;
+    if (existing) {
+      const note = notes.find(n => n.id === existing.id);
+      if (note) { note.title = title; note.body = body; }
+    } else {
+      const newNote = { id:genId(), title, body };
+      notes.unshift(newNote);
+      activeNoteId = newNote.id;
+    }
+    saveNotes();
+    renderNoteList();
+    openNote(existing ? existing.id : notes[0].id);
+  });
+  document.getElementById('btn-cancel-note').addEventListener('click', () => {
+    if (activeNoteId) openNote(activeNoteId);
+    else document.getElementById('note-view').innerHTML = '<div class="note-view-empty"><div class="note-view-empty-text">Select a note to read it.</div></div>';
+  });
+}
+
+document.getElementById('btn-new-note').addEventListener('click', () => showNoteForm(null));
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+initSupabase();
+loadNotes();
+renderTimeline();
+renderIssues();
+renderScript();
+renderProjects();
+renderNoteList();
+</script>
+</body>
+</html>
