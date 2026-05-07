@@ -452,19 +452,20 @@ body {
 }
 
 /* ═══════════════════════════════════════════════
-   UNIVERSE MAP
+   UNIVERSE MAP — SCHEMATIC ATLAS
 ═══════════════════════════════════════════════ */
 .universe-board {
   position: relative;
   background: var(--paper-worn);
   border: 1px solid var(--rule);
-  padding: 32px 28px 28px;
+  padding: 36px 28px 32px;
   background-image:
     linear-gradient(var(--bp-grid-maj) 1px, transparent 1px),
     linear-gradient(90deg, var(--bp-grid-maj) 1px, transparent 1px),
     linear-gradient(var(--bp-grid-min) 1px, transparent 1px),
     linear-gradient(90deg, var(--bp-grid-min) 1px, transparent 1px);
   background-size: 80px 80px, 80px 80px, 20px 20px, 20px 20px;
+  overflow: hidden;
 }
 .universe-board-id {
   position: absolute; top: 8px; left: 12px;
@@ -482,52 +483,135 @@ body {
   border-bottom: 1px solid var(--bp); border-right: 1px solid var(--bp); opacity: 0.4;
 }
 
-.galaxy-block { margin-bottom: 36px; }
-.galaxy-block:last-child { margin-bottom: 0; }
-.galaxy-header {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 14px;
-}
-.galaxy-header-label {
-  font-family: var(--font-narrow); font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.26em; color: var(--bp); opacity: 0.65;
-  white-space: nowrap;
-}
-.galaxy-header-rule {
-  flex: 1; height: 1px; background: var(--bp-rule); opacity: 0.5;
-}
-.galaxy-header-tick {
-  font-family: var(--font-mono); font-size: 8px; color: var(--bp); opacity: 0.4;
+/* 3-column spatial map layout */
+.umap-grid {
+  display: grid;
+  grid-template-columns: 1fr 52px 1fr 52px 1fr;
+  gap: 0;
+  align-items: start;
 }
 
-.world-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
-.world-card {
+/* Transit connector between regions */
+.umap-transit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 88px;
+  gap: 0;
+}
+.umap-transit-line {
+  width: 1px; height: 48px;
+  background: repeating-linear-gradient(
+    to bottom, var(--bp) 0, var(--bp) 3px, transparent 3px, transparent 8px
+  );
+  opacity: 0.45;
+}
+.umap-transit-arrow {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--bp); opacity: 0.55; line-height: 1;
+}
+.umap-transit-line2 {
+  width: 1px; height: 28px;
+  background: repeating-linear-gradient(
+    to bottom, var(--bp) 0, var(--bp) 3px, transparent 3px, transparent 8px
+  );
+  opacity: 0.3;
+}
+.umap-transit-lbl {
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono); font-size: 7px;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--bp); opacity: 0.4; margin-top: 10px;
+}
+
+/* Region column */
+.umap-region-col {}
+.umap-region-header {
+  margin-bottom: 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--bp-rule);
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.umap-region-lbl {
+  font-family: var(--font-narrow); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.22em; color: var(--bp); opacity: 0.65;
+}
+.umap-region-count {
+  font-family: var(--font-mono); font-size: 8px;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--bp); opacity: 0.4;
+}
+.umap-worlds { display: flex; flex-direction: column; gap: 11px; }
+
+/* ── Schematic planet card ─────────────────── */
+.schematic-card {
   background: var(--paper);
   border: 1px solid var(--bp-rule);
-  padding: 13px 15px;
   position: relative;
   transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: visible;
 }
-.world-card:hover { border-color: var(--bp); box-shadow: 2px 2px 0 var(--bp-pale); }
-.world-card::before {
-  content: ''; position: absolute; top: 0; left: 0;
-  width: 3px; height: 100%;
-  background: var(--bp); opacity: 0.25;
+.schematic-card:hover {
+  border-color: var(--bp);
+  box-shadow: 3px 3px 0 var(--bp-pale);
 }
-.world-id {
-  font-family: var(--font-mono); font-size: 8px; text-transform: uppercase;
-  letter-spacing: 0.14em; color: var(--bp-dim); opacity: 0.65; margin-bottom: 5px;
+/* TL crop mark */
+.schematic-card::before {
+  content: ''; position: absolute; top: -4px; left: -4px;
+  width: 10px; height: 10px;
+  border-top: 1px solid var(--bp); border-left: 1px solid var(--bp); opacity: 0.5;
 }
-.world-name { font-family: var(--font-display); font-size: 15px; font-weight: 400; color: var(--ink); margin-bottom: 7px; }
-.world-desc { font-size: 11.5px; color: var(--ink-dim); line-height: 1.6; }
-.world-foot {
-  display: flex; align-items: center; gap: 6px;
-  margin-top: 10px; padding-top: 8px;
-  border-top: 1px dashed var(--seam);
+/* BR crop mark */
+.schematic-card::after {
+  content: ''; position: absolute; bottom: -4px; right: -4px;
+  width: 10px; height: 10px;
+  border-bottom: 1px solid var(--bp); border-right: 1px solid var(--bp); opacity: 0.5;
 }
-.world-status-lbl {
-  font-family: var(--font-narrow); font-size: 9px; text-transform: uppercase;
-  letter-spacing: 0.1em; color: var(--ink-muted);
+
+.schematic-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px 6px;
+  border-bottom: 1px solid var(--bp-rule);
+  background: rgba(30,58,110,0.03);
+}
+.schematic-id {
+  font-family: var(--font-mono); font-size: 7.5px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--bp); opacity: 0.65;
+}
+.schematic-status {
+  display: flex; align-items: center; gap: 4px;
+  font-family: var(--font-narrow); font-size: 9px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+.schematic-status.primary  { color: var(--canon-ink); }
+.schematic-status.upcoming { color: var(--upcoming-ink); }
+.schematic-status.mystery  { color: var(--active-ink); }
+
+/* SVG drawing area */
+.schematic-svg-wrap {
+  padding: 10px 10px 8px;
+  background: rgba(243,240,234,0.6);
+  border-bottom: 1px dashed var(--seam);
+}
+.schematic-svg-wrap svg {
+  width: 100%; height: auto; display: block;
+  color: var(--bp);
+}
+
+/* Info below drawing */
+.schematic-info { padding: 9px 10px 10px 12px; }
+.schematic-name {
+  font-family: var(--font-display); font-size: 14px; font-weight: 400;
+  color: var(--ink); margin-bottom: 5px; line-height: 1.2;
+}
+.schematic-note {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--ink-muted); line-height: 1.65; letter-spacing: 0.01em;
+}
+
+@media (max-width: 900px) {
+  .umap-grid { grid-template-columns: 1fr; }
+  .umap-transit { flex-direction: row; padding-top: 0; padding: 8px 0; }
+  .umap-transit-line, .umap-transit-line2 { width: 30px; height: 1px; }
+  .umap-transit-lbl { writing-mode: horizontal-tb; }
 }
 
 /* ═══════════════════════════════════════════════
@@ -1202,28 +1286,230 @@ function renderTimeline() {
 ══════════════════════════════════════════ */
 function renderUniverse() {
   const container = document.getElementById('universe-regions');
-  UNIVERSE.forEach((region, ri) => {
-    const block = document.createElement('div');
-    block.className = 'galaxy-block';
-    block.innerHTML = `
-      <div class="galaxy-header">
-        <span class="galaxy-header-label">${region.region}</span>
-        <div class="galaxy-header-rule"></div>
-        <span class="galaxy-header-tick">${region.tick}</span>
+
+  /* ── SVG blueprints keyed by world id ─────────── */
+  const SVG = {
+    'WORLD-01 / EARTH-SOL': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
+      <circle cx="60" cy="48" r="26" fill="rgba(30,58,110,0.04)" stroke-width="1"/>
+      <ellipse cx="60" cy="40" rx="26" ry="7" stroke-dasharray="2 2" opacity="0.45"/>
+      <ellipse cx="60" cy="48" rx="26" ry="9" stroke-dasharray="2 2" opacity="0.6"/>
+      <ellipse cx="60" cy="56" rx="26" ry="7" stroke-dasharray="2 2" opacity="0.45"/>
+      <line x1="60" y1="22" x2="60" y2="74" stroke-dasharray="3 2" opacity="0.4"/>
+      <ellipse cx="60" cy="48" rx="44" ry="11" stroke-dasharray="5 3" opacity="0.3"/>
+      <line x1="56" y1="21" x2="64" y2="21" stroke-width="1.1"/>
+      <line x1="56" y1="75" x2="64" y2="75" stroke-width="1.1"/>
+      <circle cx="60" cy="48" r="1.8" fill="currentColor"/>
+      <line x1="77" y1="35" x2="89" y2="26" opacity="0.45"/>
+      <circle cx="77" cy="35" r="1" fill="currentColor"/>
+      <text x="91" y="25" font-family="JetBrains Mono,monospace" font-size="6.5" fill="currentColor" stroke="none" letter-spacing="0.06em">SOL-III</text>
+      <line x1="10" y1="92" x2="110" y2="92" stroke-dasharray="2 2" opacity="0.25"/>
+    </svg>`,
+
+    'WORLD-02 / XVARAH-SYS': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
+      <circle cx="60" cy="48" r="15" fill="rgba(30,58,110,0.06)" stroke-width="1.1"/>
+      <ellipse cx="60" cy="48" rx="36" ry="8" stroke-width="1" opacity="0.9"/>
+      <ellipse cx="60" cy="48" rx="36" ry="13" transform="rotate(42 60 48)" stroke-width="0.9" opacity="0.7"/>
+      <ellipse cx="60" cy="48" rx="36" ry="13" transform="rotate(82 60 48)" stroke-width="0.8" opacity="0.55"/>
+      <circle cx="96" cy="48" r="2.2" fill="currentColor" opacity="0.7"/>
+      <circle cx="24" cy="48" r="2.2" fill="currentColor" opacity="0.7"/>
+      <circle cx="60" cy="48" r="2.5" fill="currentColor"/>
+      <line x1="75" y1="33" x2="88" y2="23" opacity="0.45"/>
+      <circle cx="75" cy="33" r="1" fill="currentColor"/>
+      <text x="90" y="22" font-family="JetBrains Mono,monospace" font-size="6" fill="currentColor" stroke="none" letter-spacing="0.06em">DYSON×3</text>
+      <line x1="10" y1="92" x2="110" y2="92" stroke-dasharray="2 2" opacity="0.25"/>
+    </svg>`,
+
+    'WORLD-03 / SIAHGAAR': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
+      <defs>
+        <clipPath id="clip-siahgaar">
+          <circle cx="60" cy="48" r="26"/>
+        </clipPath>
+      </defs>
+      <circle cx="60" cy="48" r="26" fill="rgba(30,58,110,0.04)" stroke-width="1"/>
+      <line x1="34" y1="22" x2="86" y2="74" stroke-width="1.3"/>
+      <g clip-path="url(#clip-siahgaar)" opacity="0.2">
+        <line x1="26" y1="30" x2="66" y2="70"/><line x1="30" y1="24" x2="58" y2="52"/>
+        <line x1="36" y1="22" x2="52" y2="38"/><line x1="24" y1="36" x2="60" y2="72"/>
+        <line x1="22" y1="44" x2="50" y2="72"/><line x1="26" y1="52" x2="46" y2="72"/>
+      </g>
+      <g clip-path="url(#clip-siahgaar)" opacity="0.15">
+        <line x1="58" y1="22" x2="88" y2="52"/><line x1="64" y1="22" x2="88" y2="46"/>
+        <line x1="70" y1="22" x2="88" y2="40"/><line x1="76" y1="22" x2="88" y2="34"/>
+        <line x1="58" y1="28" x2="88" y2="58"/><line x1="58" y1="34" x2="88" y2="64"/>
+        <line x1="58" y1="40" x2="86" y2="68"/><line x1="58" y1="46" x2="82" y2="70"/>
+        <line x1="58" y1="52" x2="78" y2="72"/><line x1="58" y1="58" x2="72" y2="72"/>
+      </g>
+      <g stroke-width="1.3" opacity="0.75">
+        <line x1="44" y1="42" x2="50" y2="48"/><line x1="50" y1="42" x2="44" y2="48"/>
+        <line x1="68" y1="46" x2="74" y2="52"/><line x1="74" y1="46" x2="68" y2="52"/>
+      </g>
+      <line x1="81" y1="29" x2="92" y2="20" opacity="0.45"/>
+      <circle cx="81" cy="29" r="1" fill="currentColor"/>
+      <text x="93" y="19" font-family="JetBrains Mono,monospace" font-size="6" fill="currentColor" stroke="none" letter-spacing="0.06em">CONTESTED</text>
+      <line x1="10" y1="92" x2="110" y2="92" stroke-dasharray="2 2" opacity="0.25"/>
+    </svg>`,
+
+    'WORLD-04 / UMBRA-MALO': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
+      <path d="M60,22 L67,24 L74,22 L81,28 L85,36 L86,44 L84,52 L86,60 L80,68 L72,74 L63,76 L55,74 L47,72 L39,66 L35,58 L34,50 L36,42 L34,34 L40,28 L48,24 Z" fill="rgba(30,58,110,0.04)" stroke-width="1.1"/>
+      <line x1="60" y1="22" x2="58" y2="9"  stroke-dasharray="3 2" opacity="0.65"/>
+      <line x1="85" y1="44" x2="100" y2="39" stroke-dasharray="3 2" opacity="0.6"/>
+      <line x1="80" y1="68" x2="91"  y2="79" stroke-dasharray="3 2" opacity="0.55"/>
+      <line x1="35" y1="58" x2="21"  y2="65" stroke-dasharray="3 2" opacity="0.55"/>
+      <line x1="34" y1="34" x2="20"  y2="25" stroke-dasharray="3 2" opacity="0.45"/>
+      <path d="M43,38 Q56,50 45,62" stroke-width="1.4" opacity="0.55"/>
+      <path d="M65,34 Q79,46 69,60" stroke-width="1.1" opacity="0.45"/>
+      <circle cx="52" cy="50" r="3.5" stroke-dasharray="1.5 1.5" opacity="0.65"/>
+      <circle cx="69" cy="46" r="2.2" stroke-dasharray="1.5 1.5" opacity="0.5"/>
+      <circle cx="60" cy="48" r="1.5" fill="currentColor" opacity="0.5"/>
+      <line x1="86" y1="36" x2="97" y2="25" opacity="0.45"/>
+      <circle cx="86" cy="36" r="1" fill="currentColor"/>
+      <text x="98" y="24" font-family="JetBrains Mono,monospace" font-size="6" fill="currentColor" stroke="none" letter-spacing="0.06em">RIFT-ZONE</text>
+      <line x1="10" y1="92" x2="110" y2="92" stroke-dasharray="2 2" opacity="0.25"/>
+    </svg>`,
+
+    'WORLD-05 / MIHRVAR': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
+      <polygon points="60,22 82,34 82,58 60,70 38,58 38,34" fill="rgba(30,58,110,0.05)" stroke-width="1.2"/>
+      <polygon points="60,32 72,39 72,53 60,60 48,53 48,39" stroke-width="0.7" opacity="0.5"/>
+      <line x1="60" y1="32" x2="60" y2="60" stroke-width="0.6" opacity="0.35"/>
+      <line x1="48" y1="39" x2="72" y2="53" stroke-width="0.6" opacity="0.35"/>
+      <line x1="72" y1="39" x2="48" y2="53" stroke-width="0.6" opacity="0.35"/>
+      <rect x="55" y="13" width="3"   height="9"  opacity="0.65"/>
+      <rect x="60" y="11" width="3.5" height="11" opacity="0.85"/>
+      <rect x="65" y="13" width="3"   height="9"  opacity="0.65"/>
+      <path d="M56.5,13 Q55,9 57,6"  stroke-dasharray="2 1.5" opacity="0.35"/>
+      <path d="M61.8,11 Q60,7 62,4"  stroke-dasharray="2 1.5" opacity="0.45"/>
+      <path d="M66.5,13 Q65,9 67,6"  stroke-dasharray="2 1.5" opacity="0.35"/>
+      <circle cx="60" cy="22" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
+      <circle cx="82" cy="34" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
+      <circle cx="82" cy="58" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
+      <circle cx="60" cy="70" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
+      <circle cx="38" cy="58" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
+      <circle cx="38" cy="34" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
+      <line x1="82" y1="34" x2="93" y2="23" opacity="0.45"/>
+      <circle cx="82" cy="34" r="1" fill="currentColor"/>
+      <text x="94" y="22" font-family="JetBrains Mono,monospace" font-size="5.5" fill="currentColor" stroke="none" letter-spacing="0.06em">FORGE-CLASS</text>
+      <line x1="10" y1="92" x2="110" y2="92" stroke-dasharray="2 2" opacity="0.25"/>
+    </svg>`,
+
+    'WORLD-06 / SEPHERASARI': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
+      <defs>
+        <clipPath id="clip-sep">
+          <circle cx="60" cy="48" r="18"/>
+        </clipPath>
+      </defs>
+      <ellipse cx="60" cy="48" rx="46" ry="13" stroke-dasharray="5 3" opacity="0.4"/>
+      <ellipse cx="60" cy="48" rx="34" ry="9"  stroke-dasharray="3 2" opacity="0.6"/>
+      <ellipse cx="60" cy="48" rx="24" ry="6"  opacity="0.8"/>
+      <g clip-path="url(#clip-sep)">
+        <path d="M42,43 Q46,39 50,43 Q54,47 58,43 Q62,39 66,43 Q70,47 74,43 Q78,39 82,43" opacity="0.4" stroke-width="0.9"/>
+        <path d="M42,50 Q46,46 50,50 Q54,54 58,50 Q62,46 66,50 Q70,54 74,50 Q78,46 82,50" opacity="0.3" stroke-width="0.9"/>
+        <path d="M42,57 Q46,53 50,57 Q54,61 58,57 Q62,53 66,57 Q70,61 74,57 Q78,53 82,57" opacity="0.2" stroke-width="0.9"/>
+      </g>
+      <circle cx="60" cy="48" r="18" fill="rgba(30,58,110,0.05)" stroke-width="1"/>
+      <circle cx="60" cy="48" r="3.5" fill="rgba(30,58,110,0.18)" stroke-width="1"/>
+      <line x1="75" y1="35" x2="87" y2="25" opacity="0.45"/>
+      <circle cx="75" cy="35" r="1" fill="currentColor"/>
+      <text x="88" y="24" font-family="JetBrains Mono,monospace" font-size="5.5" fill="currentColor" stroke="none" letter-spacing="0.06em">HYDRO-STAR</text>
+      <line x1="10" y1="92" x2="110" y2="92" stroke-dasharray="2 2" opacity="0.25"/>
+    </svg>`,
+
+    'WORLD-07 / ZAFAR-NAYU': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
+      <circle cx="60" cy="48" r="40" stroke-dasharray="3 4" opacity="0.18"/>
+      <circle cx="60" cy="48" r="30" stroke-dasharray="3 3" opacity="0.26"/>
+      <circle cx="60" cy="48" r="20" stroke-dasharray="2 2" opacity="0.42"/>
+      <line x1="60" y1="48" x2="60" y2="9"  opacity="0.55"/>
+      <circle cx="60" cy="9"  r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <line x1="60" y1="48" x2="95" y2="22" opacity="0.55"/>
+      <circle cx="95" cy="22" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <line x1="60" y1="48" x2="100" y2="57" opacity="0.55"/>
+      <circle cx="100" cy="57" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <line x1="60" y1="48" x2="80"  y2="86" opacity="0.55"/>
+      <circle cx="80"  cy="86" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <line x1="60" y1="48" x2="40"  y2="86" opacity="0.55"/>
+      <circle cx="40"  cy="86" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <line x1="60" y1="48" x2="20"  y2="57" opacity="0.55"/>
+      <circle cx="20"  cy="57" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <line x1="60" y1="48" x2="25"  y2="22" opacity="0.55"/>
+      <circle cx="25"  cy="22" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <circle cx="60" cy="48" r="10" fill="rgba(30,58,110,0.06)" stroke-width="1.2"/>
+      <circle cx="60" cy="48" r="4"  fill="rgba(30,58,110,0.22)" stroke-width="1"/>
+      <line x1="70" y1="38" x2="82" y2="27" opacity="0.45"/>
+      <circle cx="70" cy="38" r="1" fill="currentColor"/>
+      <text x="83" y="26" font-family="JetBrains Mono,monospace" font-size="6" fill="currentColor" stroke="none" letter-spacing="0.06em">HIVE-MIND</text>
+      <line x1="10" y1="92" x2="110" y2="92" stroke-dasharray="2 2" opacity="0.25"/>
+    </svg>`
+  };
+
+  /* ── Short schematic notes per world ─────────── */
+  const NOTES = {
+    'WORLD-01 / EARTH-SOL':   'Only race without powers.\nKardashev marginally above K-I.\nKey sites: S. California, AEWOP,\nThe Barn, The Pit.',
+    'WORLD-02 / XVARAH-SYS':  'Xvarnhan homeworld. 3 Dyson\nrings. Synthetic mega-dome.\nFinal battle backdrop.',
+    'WORLD-03 / SIAHGAAR':    'Contested gateway world.\n2 warring factions. Humanity\ngains control — final saga\ncatalyst.',
+    'WORLD-04 / UMBRA-MALO':  'Black winter. Rift-space origin\nunconfirmed. Voids in fabric.\nRuins of former prosperity.',
+    'WORLD-05 / MIHRVAR':     'Colossal Xvarnhan forge world.\nWeapons + megastructures\ncrafted here. Forge-class.',
+    'WORLD-06 / SEPHERASARI': 'Water-mass solar system.\nHeld by hydro-star gravity.\nUncontrollable native fauna.',
+    'WORLD-07 / ZAFAR-NAYU':  'Living fungal organism.\nTelepathic hive mind.\nAdaptive spore predators.'
+  };
+
+  /* ── Status dot color helper ─────────────────── */
+  const dotClass = { canon:'canon', upcoming:'upcoming', inprog:'inprog' };
+
+  /* ── Build a schematic card ──────────────────── */
+  function buildCard(w) {
+    const card = document.createElement('div');
+    card.className = 'schematic-card';
+    const noteLines = (NOTES[w.id] || w.desc).replace(/\n/g, '<br>');
+    card.innerHTML = `
+      <div class="schematic-head">
+        <span class="schematic-id">${w.id}</span>
+        <span class="schematic-status ${w.status}">
+          <span class="s-dot ${dotClass[w.dot] || 'upcoming'}"></span>${w.statusLabel}
+        </span>
       </div>
-      <div class="world-grid">${region.worlds.map(w => `
-        <div class="world-card">
-          <div class="world-id">${w.id}</div>
-          <div class="world-name">${w.name}</div>
-          <div class="world-desc">${w.desc}</div>
-          <div class="world-foot">
-            <div class="s-dot ${w.dot}"></div>
-            <span class="world-status-lbl">${w.statusLabel}</span>
-          </div>
-        </div>`).join('')}
+      <div class="schematic-svg-wrap">${SVG[w.id] || ''}</div>
+      <div class="schematic-info">
+        <div class="schematic-name">${w.name}</div>
+        <div class="schematic-note">${noteLines}</div>
       </div>`;
-    container.appendChild(block);
-  });
+    return card;
+  }
+
+  /* ── Build transit connector ─────────────────── */
+  function buildTransit(label) {
+    const t = document.createElement('div');
+    t.className = 'umap-transit';
+    t.innerHTML = `
+      <div class="umap-transit-line"></div>
+      <div class="umap-transit-arrow">◆</div>
+      <div class="umap-transit-line2"></div>
+      <div class="umap-transit-lbl">${label}</div>`;
+    return t;
+  }
+
+  /* ── Build a region column ───────────────────── */
+  function buildCol(region) {
+    const col = document.createElement('div');
+    col.className = 'umap-region-col';
+    col.innerHTML = `
+      <div class="umap-region-header">
+        <span class="umap-region-lbl">${region.region}</span>
+        <span class="umap-region-count">${region.tick}</span>
+      </div>
+      <div class="umap-worlds"></div>`;
+    const worlds = col.querySelector('.umap-worlds');
+    region.worlds.forEach(w => worlds.appendChild(buildCard(w)));
+    return col;
+  }
+
+  /* ── Assemble 3-column spatial grid ─────────── */
+  const grid = document.createElement('div');
+  grid.className = 'umap-grid';
+  grid.appendChild(buildCol(UNIVERSE[0]));                  // Milky Way
+  grid.appendChild(buildTransit('INTERGALACTIC TRANSIT'));  // ← connector
+  grid.appendChild(buildCol(UNIVERSE[1]));                  // Rift Zone
+  grid.appendChild(buildTransit('RIFT × ANDROMEDA'));       // ← connector
+  grid.appendChild(buildCol(UNIVERSE[2]));                  // Andromeda
+  container.appendChild(grid);
 }
 
 /* ══════════════════════════════════════════
