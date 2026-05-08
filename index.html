@@ -963,7 +963,7 @@ body {
 /* ═══════════════════════════════════════════════
    SPOTIFY — PLAYER BAR (FIXED BOTTOM)
 ═══════════════════════════════════════════════ */
-body.has-spotify-bar { padding-bottom: 74px; }
+body { padding-bottom: 74px; }
 
 #spotify-bar {
   position: fixed;
@@ -980,11 +980,42 @@ body.has-spotify-bar { padding-bottom: 74px; }
   padding: 0 20px;
   gap: 18px;
   z-index: 200;
-  transform: translateY(100%);
-  transition: transform 0.38s cubic-bezier(0.16,1,0.3,1);
+  transform: translateY(0);
   box-shadow: 0 -6px 32px rgba(0,0,0,0.35);
 }
-#spotify-bar.sbar-visible { transform: translateY(0); }
+/* disconnected overlay */
+#sbar-connect-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #0b1829;
+  z-index: 2;
+}
+#sbar-connect-overlay span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(30,58,110,0.7);
+}
+#sbar-connect-overlay button {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(30,58,110,0.25);
+  border: 1px solid rgba(30,58,110,0.65);
+  color: #e8e4d8;
+  padding: 7px 16px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+#sbar-connect-overlay button:hover { background: rgba(30,58,110,0.5); }
+#spotify-bar.sbar-connected #sbar-connect-overlay { display: none; }
 
 /* Album art — spinning disc */
 .sbar-disc-wrap {
@@ -1397,6 +1428,13 @@ body.has-spotify-bar { padding-bottom: 74px; }
      SPOTIFY PLAYER BAR
 ══════════════════════════════════════════ -->
 <div id="spotify-bar">
+  <!-- Disconnected overlay — hidden once Spotify connects -->
+  <div id="sbar-connect-overlay">
+    <span>◈ BAD KIDS / MUSIC PLAYER</span>
+    <button onclick="spotifyConnect()">♫ Connect Spotify</button>
+    <span id="sbar-uri-hint" style="font-size:8px;opacity:0.4"></span>
+  </div>
+
   <!-- Rotating disc / album art -->
   <div class="sbar-disc-wrap">
     <img id="sbar-art" src="" alt="Album art"
@@ -1478,7 +1516,7 @@ body.has-spotify-bar { padding-bottom: 74px; }
 
 /* ─── ① YOUR CONFIG — edit these values ──────────────────────── */
 const SPOTIFY_CLIENT_ID   = '9373b948b3c843c59afb7da6eb0b6a8c';
-const SPOTIFY_REDIRECT_URI = 'https://insanesagelegendary.github.io/bad-kids-hub/';
+const SPOTIFY_REDIRECT_URI = window.location.origin + window.location.pathname;
 
 /* Map each world / issue to a Spotify track URI.
    Leave as null to disable click-to-play for that item.
@@ -1531,9 +1569,11 @@ async function _spkceChallenge(v) {
 /* ─── Auth: connect ───────────────────────────────────────────── */
 async function spotifyConnect() {
   if (SPOTIFY_CLIENT_ID === 'YOUR_CLIENT_ID_HERE') {
-    alert('Open index.html and set SPOTIFY_CLIENT_ID to your Spotify Developer app Client ID.\n\nSee the setup instructions in the source code comments.');
+    alert('Set SPOTIFY_CLIENT_ID in the source code first.');
     return;
   }
+  // Show the exact URI so you can verify it matches your Spotify Dashboard
+  console.log('Spotify redirect URI:', SPOTIFY_REDIRECT_URI);
   const v = _spkceVerifier();
   localStorage.setItem('_sp_cv', v);
   const ch = await _spkceChallenge(v);
@@ -1694,8 +1734,7 @@ function spotifyPlaylist() {
 /* ─── UI helpers ──────────────────────────────────────────────── */
 function _spShowBar(visible) {
   const bar = document.getElementById('spotify-bar');
-  if (bar) bar.classList.toggle('sbar-visible', visible);
-  document.body.classList.toggle('has-spotify-bar', visible);
+  if (bar) bar.classList.toggle('sbar-connected', visible);
 }
 
 function _spSetConnectBtn(connected) {
@@ -1785,6 +1824,9 @@ function showSpotifyToast(msg) {
 
 /* ─── Wire up player bar buttons (after DOM ready) ────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+  // Show exact redirect URI in the bar so it's easy to copy for Spotify Dashboard
+  const uriHint = document.getElementById('sbar-uri-hint');
+  if (uriHint) uriHint.textContent = SPOTIFY_REDIRECT_URI;
   // Transport
   document.getElementById('sbar-play')?.addEventListener('click',
     () => spotifyPlayer?.togglePlay());
