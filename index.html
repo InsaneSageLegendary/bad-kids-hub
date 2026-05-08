@@ -479,7 +479,9 @@ body {
   position: absolute; top: 8px; left: 12px;
   font-family: var(--font-mono); font-size: 8px;
   text-transform: uppercase; letter-spacing: 0.16em; color: var(--bp); opacity: 0.5;
+  z-index: 3;
 }
+#universe-regions { position: relative; z-index: 2; }
 .universe-board::before {
   content: ''; position: absolute; top: -5px; left: -5px;
   width: 14px; height: 14px;
@@ -565,72 +567,63 @@ body {
   font-family: var(--font-mono); font-size: 8px;
   text-transform: uppercase; letter-spacing: 0.1em; color: var(--bp); opacity: 0.4;
 }
-.umap-worlds { display: flex; flex-direction: column; gap: 36px; }
+.umap-worlds { display: flex; flex-direction: column; gap: 0; align-items: center; }
 .umap-worlds .schematic-card { animation: card-drift 9s ease-in-out infinite; }
-.umap-worlds .schematic-card:nth-child(2) { animation-duration: 11s; animation-delay: -3s; }
-.umap-worlds .schematic-card:nth-child(3) { animation-duration: 13s; animation-delay: -6s; }
+.umap-worlds .schematic-card:nth-child(odd) { animation-duration: 11s; animation-delay: -3s; }
+.umap-worlds .schematic-card:nth-child(3n) { animation-duration: 13s; animation-delay: -6s; }
 @keyframes card-drift {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
+  50%      { transform: translateY(-5px); }
 }
 
-/* ── Schematic planet card ─────────────────── */
+/* ── Schematic planet card — pure floating sketch ─ */
 .schematic-card {
-  background: var(--paper);
-  border: 1px solid var(--bp-rule);
+  background: transparent;
+  border: none;
   position: relative;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: filter 0.2s;
   overflow: visible;
+  width: 180px;
+  max-width: 180px;
+  z-index: 2;
 }
-.schematic-card:hover {
-  border-color: var(--bp);
-  box-shadow: 3px 3px 0 var(--bp-pale);
-}
-/* TL crop mark */
-.schematic-card::before {
-  content: ''; position: absolute; top: -4px; left: -4px;
-  width: 10px; height: 10px;
-  border-top: 1px solid var(--bp); border-left: 1px solid var(--bp); opacity: 0.5;
-}
-/* BR crop mark */
-.schematic-card::after {
-  content: ''; position: absolute; bottom: -4px; right: -4px;
-  width: 10px; height: 10px;
-  border-bottom: 1px solid var(--bp); border-right: 1px solid var(--bp); opacity: 0.5;
-}
+.schematic-card:hover { filter: drop-shadow(0 2px 6px rgba(30,58,110,0.18)); }
+.schematic-card::before, .schematic-card::after { display: none; }
 
 .schematic-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 7px 10px 6px;
-  border-bottom: 1px solid var(--bp-rule);
-  background: rgba(30,58,110,0.03);
+  padding: 0 4px 4px;
+  border-bottom: none;
+  background: transparent;
+  opacity: 0.85;
 }
 .schematic-id {
-  font-family: var(--font-mono); font-size: 7.5px; text-transform: uppercase;
-  letter-spacing: 0.12em; color: var(--bp); opacity: 0.65;
+  font-family: var(--font-mono); font-size: 7px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--bp); opacity: 0.55;
 }
 .schematic-status {
-  display: flex; align-items: center; gap: 4px;
-  font-family: var(--font-narrow); font-size: 9px; font-weight: 500;
+  display: flex; align-items: center; gap: 3px;
+  font-family: var(--font-narrow); font-size: 8px; font-weight: 500;
   text-transform: uppercase; letter-spacing: 0.1em;
 }
 .schematic-status.primary  { color: var(--canon-ink); }
 .schematic-status.upcoming { color: var(--upcoming-ink); }
 .schematic-status.mystery  { color: var(--active-ink); }
 
-/* SVG drawing area */
+/* SVG drawing area — transparent so cosmic bg shows through */
 .schematic-svg-wrap {
-  padding: 10px 10px 8px;
-  background: rgba(243,240,234,0.6);
-  border-bottom: 1px dashed var(--seam);
+  padding: 2px 0;
+  background: transparent;
+  border-bottom: none;
 }
 .schematic-svg-wrap svg {
   width: 100%; height: auto; display: block;
   color: var(--bp);
+  filter: drop-shadow(0 0 12px rgba(240,236,226,0.7));
 }
 
 /* Info below drawing */
-.schematic-info { padding: 9px 10px 10px 12px; }
+.schematic-info { padding: 4px 2px 0; text-align: center; }
 .schematic-name {
   font-family: var(--font-display); font-size: 14px; font-weight: 400;
   color: var(--ink); margin-bottom: 5px; line-height: 1.2;
@@ -640,11 +633,109 @@ body {
   color: var(--ink-muted); line-height: 1.65; letter-spacing: 0.01em;
 }
 
+/* ── n8n-style workflow connector between cards ── */
+.conn-vert {
+  width: 100%;
+  height: 110px;
+  position: relative;
+  margin: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.conn-vert svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.conn-vert .conn-path { stroke: var(--bp); stroke-width: 1; fill: none; opacity: 0.45; stroke-dasharray: 4 4; }
+.conn-vert .conn-port { fill: var(--bp); opacity: 0.65; }
+
+/* ── Cosmic background layer (shooting stars + galaxy decor) ── */
+.cosmic-bg {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.cosmic-bg .galaxy-decor {
+  position: absolute;
+  color: var(--bp);
+  opacity: 0.18;
+  pointer-events: none;
+}
+.cosmic-bg .galaxy-decor.tl { top: 24px;    left: 32px;   width: 220px; }
+.cosmic-bg .galaxy-decor.br { bottom: 24px; right: 32px;  width: 200px; transform: rotate(180deg); }
+.cosmic-bg .galaxy-decor.tr { top: 60px;    right: 80px;  width: 130px; opacity: 0.12; }
+.cosmic-bg .galaxy-decor.bl { bottom: 60px; left: 90px;   width: 130px; opacity: 0.12; transform: rotate(180deg); }
+
+/* Star field — small dots scattered across */
+.cosmic-bg .star-dot {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: var(--bp);
+  border-radius: 50%;
+  opacity: 0.22;
+  animation: star-twinkle 4s ease-in-out infinite;
+}
+.cosmic-bg .star-dot.s1  { top: 12%; left: 22%; animation-delay: 0s;   }
+.cosmic-bg .star-dot.s2  { top: 30%; left: 9%;  animation-delay: -1s;  width: 1.5px; height: 1.5px; }
+.cosmic-bg .star-dot.s3  { top: 18%; left: 78%; animation-delay: -2s;  }
+.cosmic-bg .star-dot.s4  { top: 55%; left: 6%;  animation-delay: -0.5s;}
+.cosmic-bg .star-dot.s5  { top: 72%; left: 18%; animation-delay: -2.5s; width: 1.5px; height: 1.5px; }
+.cosmic-bg .star-dot.s6  { top: 84%; left: 48%; animation-delay: -1.5s;}
+.cosmic-bg .star-dot.s7  { top: 8%;  left: 52%; animation-delay: -3s;  width: 1.5px; height: 1.5px; }
+.cosmic-bg .star-dot.s8  { top: 64%; left: 92%; animation-delay: -2s;  }
+.cosmic-bg .star-dot.s9  { top: 42%; left: 95%; animation-delay: -3.2s; width: 1.5px; height: 1.5px; }
+.cosmic-bg .star-dot.s10 { top: 88%; left: 76%; animation-delay: -1.8s;}
+.cosmic-bg .star-dot.s11 { top: 38%; left: 36%; animation-delay: -0.7s; width: 1.5px; height: 1.5px; }
+.cosmic-bg .star-dot.s12 { top: 25%; left: 64%; animation-delay: -3.6s;}
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.1; transform: scale(0.85); }
+  50%      { opacity: 0.45; transform: scale(1.1); }
+}
+@keyframes galaxy-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.cosmic-bg .galaxy-decor.br { transform-origin: center; }
+
+/* Shooting stars — diagonal streaks across the board */
+.shoot {
+  position: absolute;
+  width: 120px; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(30,58,110,0) 0%, rgba(30,58,110,0.55) 60%, var(--bp) 100%);
+  opacity: 0;
+  transform: rotate(18deg);
+  filter: blur(0.3px);
+}
+.shoot::after {
+  content: '';
+  position: absolute; right: -2px; top: -1.5px;
+  width: 4px; height: 4px;
+  background: var(--bp);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(30,58,110,0.6);
+}
+.shoot { --shoot-angle: 16deg; transform: rotate(var(--shoot-angle)); }
+.shoot.a { top: 14%; left: -10%; animation: shoot-fly 9s linear infinite;  animation-delay: 0s;  --shoot-angle: 16deg; }
+.shoot.b { top: 62%; left: -10%; animation: shoot-fly 11s linear infinite; animation-delay: -4s; --shoot-angle: 12deg; }
+.shoot.c { top: 38%; left: -10%; animation: shoot-fly-up 13s linear infinite; animation-delay: -7s; --shoot-angle: -8deg; }
+.shoot.d { top: 80%; left: -10%; animation: shoot-fly 10s linear infinite; animation-delay: -2s; --shoot-angle: 22deg; }
+@keyframes shoot-fly {
+  0%   { opacity: 0; transform: translateX(0) translateY(0) rotate(var(--shoot-angle)); }
+  4%   { opacity: 0.85; }
+  18%  { opacity: 0; }
+  100% { opacity: 0; transform: translateX(140vw) translateY(40vh) rotate(var(--shoot-angle)); }
+}
+@keyframes shoot-fly-up {
+  0%   { opacity: 0; transform: translateX(0) translateY(0) rotate(var(--shoot-angle)); }
+  6%   { opacity: 0.7; }
+  20%  { opacity: 0; }
+  100% { opacity: 0; transform: translateX(140vw) translateY(-20vh) rotate(var(--shoot-angle)); }
+}
+
 @media (max-width: 900px) {
   .umap-grid { grid-template-columns: 1fr; }
   .umap-transit { flex-direction: row; padding-top: 0; padding: 8px 0; }
   .umap-transit-line, .umap-transit-line2 { width: 30px; height: 1px; }
   .umap-transit-lbl { writing-mode: horizontal-tb; }
+  .schematic-card { width: 220px; max-width: 220px; }
 }
 
 /* ═══════════════════════════════════════════════
@@ -1632,6 +1723,33 @@ function renderUniverse() {
     return t;
   }
 
+  /* ── n8n-style vertical connector between cards ─ */
+  function buildConnector(idx) {
+    const wrap = document.createElement('div');
+    wrap.className = 'conn-vert';
+    // Alternate slight S-curve direction so successive connectors don't look identical
+    const sway = idx % 2 === 0 ? 1 : -1;
+    const cx = 50;
+    const c1x = 50 + sway * 12;
+    const c2x = 50 - sway * 12;
+    const pathD = `M${cx},4 C${c1x},35 ${c2x},75 ${cx},106`;
+    const pid = `cv-${Math.random().toString(36).slice(2,8)}`;
+    wrap.innerHTML = `
+      <svg viewBox="0 0 100 110" preserveAspectRatio="none">
+        <circle class="conn-port" cx="${cx}" cy="4" r="1.6"/>
+        <path id="${pid}" class="conn-path" d="${pathD}">
+          <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="2.4s" repeatCount="indefinite"/>
+        </path>
+        <circle r="1.4" fill="var(--bp)" opacity="0.85">
+          <animateMotion dur="2.6s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#${pid}"/>
+          </animateMotion>
+        </circle>
+        <circle class="conn-port" cx="${cx}" cy="106" r="1.6"/>
+      </svg>`;
+    return wrap;
+  }
+
   /* ── Build a region column ───────────────────── */
   function buildCol(region) {
     const col = document.createElement('div');
@@ -1643,11 +1761,63 @@ function renderUniverse() {
       </div>
       <div class="umap-worlds"></div>`;
     const worlds = col.querySelector('.umap-worlds');
-    region.worlds.forEach(w => worlds.appendChild(buildCard(w)));
+    region.worlds.forEach((w, i) => {
+      worlds.appendChild(buildCard(w));
+      if (i < region.worlds.length - 1) worlds.appendChild(buildConnector(i));
+    });
     return col;
   }
 
+  /* ── Cosmic background: galaxy decor + shooting stars + star field ─ */
+  function buildCosmicBg() {
+    const bg = document.createElement('div');
+    bg.className = 'cosmic-bg';
+    // Galaxy spiral SVG (used 4× at different corners/sizes/opacities)
+    const spiral = `
+      <svg class="galaxy-decor PLACEHOLDER" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.5">
+        <circle cx="100" cy="100" r="3" fill="currentColor" opacity="0.5"/>
+        <path d="M100,100 Q120,90 140,100 Q160,115 165,140 Q160,170 130,180 Q90,185 60,165 Q35,140 38,108 Q45,75 75,62 Q108,52 138,68" opacity="0.7"/>
+        <path d="M100,100 Q85,108 75,122 Q68,140 75,158 Q90,172 112,170 Q135,162 145,140" opacity="0.55" stroke-dasharray="2 2"/>
+        <path d="M100,100 Q108,92 122,90 Q140,92 152,108 Q160,128 152,146" opacity="0.4" stroke-dasharray="2 2"/>
+        <circle cx="100" cy="100" r="60" stroke-dasharray="1 4" opacity="0.3"/>
+        <circle cx="100" cy="100" r="80" stroke-dasharray="1 6" opacity="0.2"/>
+        <!-- Star sparks along arms -->
+        <circle cx="138" cy="68"  r="0.9" fill="currentColor" opacity="0.7"/>
+        <circle cx="165" cy="140" r="0.9" fill="currentColor" opacity="0.7"/>
+        <circle cx="60"  cy="165" r="0.9" fill="currentColor" opacity="0.7"/>
+        <circle cx="38"  cy="108" r="0.9" fill="currentColor" opacity="0.7"/>
+        <circle cx="75"  cy="62"  r="0.9" fill="currentColor" opacity="0.7"/>
+      </svg>`;
+    bg.innerHTML = `
+      ${spiral.replace('PLACEHOLDER','tl')}
+      ${spiral.replace('PLACEHOLDER','br')}
+      ${spiral.replace('PLACEHOLDER','tr')}
+      ${spiral.replace('PLACEHOLDER','bl')}
+      <div class="star-dot s1"></div><div class="star-dot s2"></div>
+      <div class="star-dot s3"></div><div class="star-dot s4"></div>
+      <div class="star-dot s5"></div><div class="star-dot s6"></div>
+      <div class="star-dot s7"></div><div class="star-dot s8"></div>
+      <div class="star-dot s9"></div><div class="star-dot s10"></div>
+      <div class="star-dot s11"></div><div class="star-dot s12"></div>
+      <div class="shoot a"></div>
+      <div class="shoot b"></div>
+      <div class="shoot c"></div>
+      <div class="shoot d"></div>`;
+    // Slowly rotate the corner spirals for galactic feel
+    const tlSpiral = bg.querySelector('.galaxy-decor.tl');
+    const brSpiral = bg.querySelector('.galaxy-decor.br');
+    if (tlSpiral) tlSpiral.style.animation = 'galaxy-rotate 240s linear infinite';
+    if (brSpiral) brSpiral.style.animation = 'galaxy-rotate 240s linear infinite reverse';
+    return bg;
+  }
+
   /* ── Assemble 3-column spatial grid ─────────── */
+  // Inject cosmic background behind everything
+  const board = container.parentElement; // .universe-board
+  if (board && !board.querySelector('.cosmic-bg')) {
+    board.insertBefore(buildCosmicBg(), container);
+  }
+
   const grid = document.createElement('div');
   grid.className = 'umap-grid';
   grid.appendChild(buildCol(UNIVERSE[0]));                  // Milky Way
