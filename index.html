@@ -454,18 +454,26 @@ body {
 /* ═══════════════════════════════════════════════
    UNIVERSE MAP — SCHEMATIC ATLAS
 ═══════════════════════════════════════════════ */
+/* Universe panel breaks out of the 1120px content rail to fill the page */
+#panel-universe {
+  max-width: none;
+  padding: 18px 28px 60px;
+}
 .universe-board {
   position: relative;
   background: var(--paper-worn);
   border: 1px solid var(--rule);
-  padding: 36px 28px 32px;
+  padding: 56px 44px 44px;
   background-image:
+    radial-gradient(circle at 20% 30%, rgba(30,58,110,0.05) 0%, transparent 60%),
+    radial-gradient(circle at 80% 70%, rgba(30,58,110,0.04) 0%, transparent 55%),
     linear-gradient(var(--bp-grid-maj) 1px, transparent 1px),
     linear-gradient(90deg, var(--bp-grid-maj) 1px, transparent 1px),
     linear-gradient(var(--bp-grid-min) 1px, transparent 1px),
     linear-gradient(90deg, var(--bp-grid-min) 1px, transparent 1px);
-  background-size: 80px 80px, 80px 80px, 20px 20px, 20px 20px;
+  background-size: auto, auto, 80px 80px, 80px 80px, 20px 20px, 20px 20px;
   overflow: hidden;
+  min-height: 80vh;
 }
 .universe-board-id {
   position: absolute; top: 8px; left: 12px;
@@ -483,12 +491,14 @@ body {
   border-bottom: 1px solid var(--bp); border-right: 1px solid var(--bp); opacity: 0.4;
 }
 
-/* 3-column spatial map layout */
+/* 3-column spatial map layout — spread across whole page */
 .umap-grid {
   display: grid;
-  grid-template-columns: 1fr 52px 1fr 52px 1fr;
+  grid-template-columns: 1fr 120px 1fr 120px 1fr;
   gap: 0;
   align-items: start;
+  max-width: 1700px;
+  margin: 0 auto;
 }
 
 /* Transit connector between regions */
@@ -496,26 +506,42 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 88px;
+  padding-top: 110px;
   gap: 0;
+  position: relative;
+}
+.umap-transit::before {
+  content: '';
+  position: absolute;
+  top: 70px; left: 50%;
+  width: 6px; height: 6px;
+  border: 1px solid var(--bp);
+  transform: translateX(-50%) rotate(45deg);
+  opacity: 0.4;
 }
 .umap-transit-line {
-  width: 1px; height: 48px;
+  width: 1px; height: 110px;
   background: repeating-linear-gradient(
     to bottom, var(--bp) 0, var(--bp) 3px, transparent 3px, transparent 8px
   );
   opacity: 0.45;
+  animation: transit-flow 3.2s linear infinite;
+}
+@keyframes transit-flow {
+  from { background-position: 0 0; }
+  to   { background-position: 0 22px; }
 }
 .umap-transit-arrow {
   font-family: var(--font-mono); font-size: 11px;
   color: var(--bp); opacity: 0.55; line-height: 1;
 }
 .umap-transit-line2 {
-  width: 1px; height: 28px;
+  width: 1px; height: 60px;
   background: repeating-linear-gradient(
     to bottom, var(--bp) 0, var(--bp) 3px, transparent 3px, transparent 8px
   );
   opacity: 0.3;
+  animation: transit-flow 3.2s linear infinite reverse;
 }
 .umap-transit-lbl {
   writing-mode: vertical-rl;
@@ -539,7 +565,14 @@ body {
   font-family: var(--font-mono); font-size: 8px;
   text-transform: uppercase; letter-spacing: 0.1em; color: var(--bp); opacity: 0.4;
 }
-.umap-worlds { display: flex; flex-direction: column; gap: 11px; }
+.umap-worlds { display: flex; flex-direction: column; gap: 36px; }
+.umap-worlds .schematic-card { animation: card-drift 9s ease-in-out infinite; }
+.umap-worlds .schematic-card:nth-child(2) { animation-duration: 11s; animation-delay: -3s; }
+.umap-worlds .schematic-card:nth-child(3) { animation-duration: 13s; animation-delay: -6s; }
+@keyframes card-drift {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
 
 /* ── Schematic planet card ─────────────────── */
 .schematic-card {
@@ -874,9 +907,6 @@ body {
 
   <!-- UNIVERSE MAP -->
   <section class="tab-panel" id="panel-universe">
-    <div class="panel-ident">PANEL-02 / WORLD-BUILDING REFERENCE / DRAFT LAYOUT</div>
-    <h2 class="panel-title">Universe Map</h2>
-    <p class="panel-desc">Seven worlds across three galaxy systems. Blueprint view — structural reference only.</p>
     <div class="universe-board">
       <div class="universe-board-id">UNIVERSE-ATLAS-01 / STRUCTURAL DRAFT / 7 WORLDS CATALOGUED</div>
       <div id="universe-regions"></div>
@@ -1295,10 +1325,15 @@ function renderUniverse() {
       <ellipse cx="60" cy="48" rx="26" ry="9" stroke-dasharray="2 2" opacity="0.6"/>
       <ellipse cx="60" cy="56" rx="26" ry="7" stroke-dasharray="2 2" opacity="0.45"/>
       <line x1="60" y1="22" x2="60" y2="74" stroke-dasharray="3 2" opacity="0.4"/>
-      <ellipse cx="60" cy="48" rx="44" ry="11" stroke-dasharray="5 3" opacity="0.3"/>
+      <ellipse cx="60" cy="48" rx="44" ry="11" stroke-dasharray="5 3" opacity="0.3" stroke-dashoffset="0">
+        <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="6s" repeatCount="indefinite"/>
+      </ellipse>
       <line x1="56" y1="21" x2="64" y2="21" stroke-width="1.1"/>
       <line x1="56" y1="75" x2="64" y2="75" stroke-width="1.1"/>
-      <circle cx="60" cy="48" r="1.8" fill="currentColor"/>
+      <circle cx="60" cy="48" r="1.8" fill="currentColor">
+        <animate attributeName="r" values="1.5;2.4;1.5" dur="2.6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0.6;1" dur="2.6s" repeatCount="indefinite"/>
+      </circle>
       <line x1="77" y1="35" x2="89" y2="26" opacity="0.45"/>
       <circle cx="77" cy="35" r="1" fill="currentColor"/>
       <text x="91" y="25" font-family="JetBrains Mono,monospace" font-size="6.5" fill="currentColor" stroke="none" letter-spacing="0.06em">SOL-III</text>
@@ -1307,12 +1342,27 @@ function renderUniverse() {
 
     'WORLD-02 / XVARAH-SYS': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
       <circle cx="60" cy="48" r="15" fill="rgba(30,58,110,0.06)" stroke-width="1.1"/>
-      <ellipse cx="60" cy="48" rx="36" ry="8" stroke-width="1" opacity="0.9"/>
-      <ellipse cx="60" cy="48" rx="36" ry="13" transform="rotate(42 60 48)" stroke-width="0.9" opacity="0.7"/>
-      <ellipse cx="60" cy="48" rx="36" ry="13" transform="rotate(82 60 48)" stroke-width="0.8" opacity="0.55"/>
-      <circle cx="96" cy="48" r="2.2" fill="currentColor" opacity="0.7"/>
-      <circle cx="24" cy="48" r="2.2" fill="currentColor" opacity="0.7"/>
-      <circle cx="60" cy="48" r="2.5" fill="currentColor"/>
+      <g>
+        <ellipse cx="60" cy="48" rx="36" ry="8" stroke-width="1" opacity="0.9"/>
+        <animateTransform attributeName="transform" type="rotate" from="0 60 48" to="360 60 48" dur="22s" repeatCount="indefinite"/>
+      </g>
+      <g transform="rotate(42 60 48)">
+        <ellipse cx="60" cy="48" rx="36" ry="13" stroke-width="0.9" opacity="0.7"/>
+        <animateTransform attributeName="transform" type="rotate" from="42 60 48" to="402 60 48" dur="14s" repeatCount="indefinite"/>
+      </g>
+      <g transform="rotate(82 60 48)">
+        <ellipse cx="60" cy="48" rx="36" ry="13" stroke-width="0.8" opacity="0.55"/>
+        <animateTransform attributeName="transform" type="rotate" from="82 60 48" to="-278 60 48" dur="18s" repeatCount="indefinite"/>
+      </g>
+      <circle cx="96" cy="48" r="2.2" fill="currentColor" opacity="0.7">
+        <animate attributeName="opacity" values="0.4;0.9;0.4" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="24" cy="48" r="2.2" fill="currentColor" opacity="0.7">
+        <animate attributeName="opacity" values="0.9;0.4;0.9" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="60" cy="48" r="2.5" fill="currentColor">
+        <animate attributeName="r" values="2.2;3;2.2" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
       <line x1="75" y1="33" x2="88" y2="23" opacity="0.45"/>
       <circle cx="75" cy="33" r="1" fill="currentColor"/>
       <text x="90" y="22" font-family="JetBrains Mono,monospace" font-size="6" fill="currentColor" stroke="none" letter-spacing="0.06em">DYSON×3</text>
@@ -1340,6 +1390,7 @@ function renderUniverse() {
         <line x1="58" y1="52" x2="78" y2="72"/><line x1="58" y1="58" x2="72" y2="72"/>
       </g>
       <g stroke-width="1.3" opacity="0.75">
+        <animate attributeName="opacity" values="0.75;0.25;0.95;0.4;0.75" dur="2.2s" repeatCount="indefinite"/>
         <line x1="44" y1="42" x2="50" y2="48"/><line x1="50" y1="42" x2="44" y2="48"/>
         <line x1="68" y1="46" x2="74" y2="52"/><line x1="74" y1="46" x2="68" y2="52"/>
       </g>
@@ -1351,16 +1402,37 @@ function renderUniverse() {
 
     'WORLD-04 / UMBRA-MALO': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
       <path d="M60,22 L67,24 L74,22 L81,28 L85,36 L86,44 L84,52 L86,60 L80,68 L72,74 L63,76 L55,74 L47,72 L39,66 L35,58 L34,50 L36,42 L34,34 L40,28 L48,24 Z" fill="rgba(30,58,110,0.04)" stroke-width="1.1"/>
-      <line x1="60" y1="22" x2="58" y2="9"  stroke-dasharray="3 2" opacity="0.65"/>
-      <line x1="85" y1="44" x2="100" y2="39" stroke-dasharray="3 2" opacity="0.6"/>
-      <line x1="80" y1="68" x2="91"  y2="79" stroke-dasharray="3 2" opacity="0.55"/>
-      <line x1="35" y1="58" x2="21"  y2="65" stroke-dasharray="3 2" opacity="0.55"/>
-      <line x1="34" y1="34" x2="20"  y2="25" stroke-dasharray="3 2" opacity="0.45"/>
-      <path d="M43,38 Q56,50 45,62" stroke-width="1.4" opacity="0.55"/>
-      <path d="M65,34 Q79,46 69,60" stroke-width="1.1" opacity="0.45"/>
-      <circle cx="52" cy="50" r="3.5" stroke-dasharray="1.5 1.5" opacity="0.65"/>
-      <circle cx="69" cy="46" r="2.2" stroke-dasharray="1.5 1.5" opacity="0.5"/>
-      <circle cx="60" cy="48" r="1.5" fill="currentColor" opacity="0.5"/>
+      <line x1="60" y1="22" x2="58" y2="9"  stroke-dasharray="3 2" opacity="0.65">
+        <animate attributeName="stroke-dashoffset" from="0" to="-15" dur="2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="85" y1="44" x2="100" y2="39" stroke-dasharray="3 2" opacity="0.6">
+        <animate attributeName="stroke-dashoffset" from="0" to="-15" dur="2.4s" repeatCount="indefinite"/>
+      </line>
+      <line x1="80" y1="68" x2="91"  y2="79" stroke-dasharray="3 2" opacity="0.55">
+        <animate attributeName="stroke-dashoffset" from="0" to="-15" dur="2.7s" repeatCount="indefinite"/>
+      </line>
+      <line x1="35" y1="58" x2="21"  y2="65" stroke-dasharray="3 2" opacity="0.55">
+        <animate attributeName="stroke-dashoffset" from="0" to="-15" dur="2.2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="34" y1="34" x2="20"  y2="25" stroke-dasharray="3 2" opacity="0.45">
+        <animate attributeName="stroke-dashoffset" from="0" to="-15" dur="2.5s" repeatCount="indefinite"/>
+      </line>
+      <path d="M43,38 Q56,50 45,62" stroke-width="1.4" opacity="0.55">
+        <animate attributeName="opacity" values="0.55;0.15;0.55" dur="3.4s" repeatCount="indefinite"/>
+      </path>
+      <path d="M65,34 Q79,46 69,60" stroke-width="1.1" opacity="0.45">
+        <animate attributeName="opacity" values="0.15;0.5;0.15" dur="3.4s" repeatCount="indefinite"/>
+      </path>
+      <circle cx="52" cy="50" r="3.5" stroke-dasharray="1.5 1.5" opacity="0.65">
+        <animate attributeName="r" values="3;4;3" dur="3.6s" repeatCount="indefinite"/>
+        <animateTransform attributeName="transform" type="rotate" from="0 52 50" to="360 52 50" dur="14s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="69" cy="46" r="2.2" stroke-dasharray="1.5 1.5" opacity="0.5">
+        <animateTransform attributeName="transform" type="rotate" from="360 69 46" to="0 69 46" dur="9s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="60" cy="48" r="1.5" fill="currentColor" opacity="0.5">
+        <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2.8s" repeatCount="indefinite"/>
+      </circle>
       <line x1="86" y1="36" x2="97" y2="25" opacity="0.45"/>
       <circle cx="86" cy="36" r="1" fill="currentColor"/>
       <text x="98" y="24" font-family="JetBrains Mono,monospace" font-size="6" fill="currentColor" stroke="none" letter-spacing="0.06em">RIFT-ZONE</text>
@@ -1373,12 +1445,27 @@ function renderUniverse() {
       <line x1="60" y1="32" x2="60" y2="60" stroke-width="0.6" opacity="0.35"/>
       <line x1="48" y1="39" x2="72" y2="53" stroke-width="0.6" opacity="0.35"/>
       <line x1="72" y1="39" x2="48" y2="53" stroke-width="0.6" opacity="0.35"/>
-      <rect x="55" y="13" width="3"   height="9"  opacity="0.65"/>
-      <rect x="60" y="11" width="3.5" height="11" opacity="0.85"/>
-      <rect x="65" y="13" width="3"   height="9"  opacity="0.65"/>
-      <path d="M56.5,13 Q55,9 57,6"  stroke-dasharray="2 1.5" opacity="0.35"/>
-      <path d="M61.8,11 Q60,7 62,4"  stroke-dasharray="2 1.5" opacity="0.45"/>
-      <path d="M66.5,13 Q65,9 67,6"  stroke-dasharray="2 1.5" opacity="0.35"/>
+      <rect x="55" y="13" width="3"   height="9"  opacity="0.65">
+        <animate attributeName="opacity" values="0.4;0.85;0.4" dur="1.8s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="60" y="11" width="3.5" height="11" opacity="0.85">
+        <animate attributeName="opacity" values="0.6;1;0.6" dur="1.4s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="65" y="13" width="3"   height="9"  opacity="0.65">
+        <animate attributeName="opacity" values="0.85;0.4;0.85" dur="1.8s" repeatCount="indefinite"/>
+      </rect>
+      <path d="M56.5,13 Q55,9 57,6"  stroke-dasharray="2 1.5" opacity="0.35">
+        <animate attributeName="stroke-dashoffset" from="8" to="0" dur="1.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;0.5;0" dur="1.4s" repeatCount="indefinite"/>
+      </path>
+      <path d="M61.8,11 Q60,7 62,4"  stroke-dasharray="2 1.5" opacity="0.45">
+        <animate attributeName="stroke-dashoffset" from="8" to="0" dur="1.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;0.6;0" dur="1.2s" repeatCount="indefinite"/>
+      </path>
+      <path d="M66.5,13 Q65,9 67,6"  stroke-dasharray="2 1.5" opacity="0.35">
+        <animate attributeName="stroke-dashoffset" from="8" to="0" dur="1.6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;0.5;0" dur="1.6s" repeatCount="indefinite"/>
+      </path>
       <circle cx="60" cy="22" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
       <circle cx="82" cy="34" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
       <circle cx="82" cy="58" r="2.5" fill="rgba(30,58,110,0.12)" stroke-width="1"/>
@@ -1397,16 +1484,40 @@ function renderUniverse() {
           <circle cx="60" cy="48" r="18"/>
         </clipPath>
       </defs>
-      <ellipse cx="60" cy="48" rx="46" ry="13" stroke-dasharray="5 3" opacity="0.4"/>
-      <ellipse cx="60" cy="48" rx="34" ry="9"  stroke-dasharray="3 2" opacity="0.6"/>
+      <ellipse cx="60" cy="48" rx="46" ry="13" stroke-dasharray="5 3" opacity="0.4">
+        <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="8s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="60" cy="48" rx="34" ry="9"  stroke-dasharray="3 2" opacity="0.6">
+        <animate attributeName="stroke-dashoffset" from="0" to="25" dur="5s" repeatCount="indefinite"/>
+      </ellipse>
       <ellipse cx="60" cy="48" rx="24" ry="6"  opacity="0.8"/>
       <g clip-path="url(#clip-sep)">
-        <path d="M42,43 Q46,39 50,43 Q54,47 58,43 Q62,39 66,43 Q70,47 74,43 Q78,39 82,43" opacity="0.4" stroke-width="0.9"/>
-        <path d="M42,50 Q46,46 50,50 Q54,54 58,50 Q62,46 66,50 Q70,54 74,50 Q78,46 82,50" opacity="0.3" stroke-width="0.9"/>
-        <path d="M42,57 Q46,53 50,57 Q54,61 58,57 Q62,53 66,57 Q70,61 74,57 Q78,53 82,57" opacity="0.2" stroke-width="0.9"/>
+        <path d="M42,43 Q46,39 50,43 Q54,47 58,43 Q62,39 66,43 Q70,47 74,43 Q78,39 82,43" opacity="0.4" stroke-width="0.9">
+          <animate attributeName="d"
+            values="M42,43 Q46,39 50,43 Q54,47 58,43 Q62,39 66,43 Q70,47 74,43 Q78,39 82,43;
+                    M42,43 Q46,47 50,43 Q54,39 58,43 Q62,47 66,43 Q70,39 74,43 Q78,47 82,43;
+                    M42,43 Q46,39 50,43 Q54,47 58,43 Q62,39 66,43 Q70,47 74,43 Q78,39 82,43"
+            dur="3.6s" repeatCount="indefinite"/>
+        </path>
+        <path d="M42,50 Q46,46 50,50 Q54,54 58,50 Q62,46 66,50 Q70,54 74,50 Q78,46 82,50" opacity="0.3" stroke-width="0.9">
+          <animate attributeName="d"
+            values="M42,50 Q46,46 50,50 Q54,54 58,50 Q62,46 66,50 Q70,54 74,50 Q78,46 82,50;
+                    M42,50 Q46,54 50,50 Q54,46 58,50 Q62,54 66,50 Q70,46 74,50 Q78,54 82,50;
+                    M42,50 Q46,46 50,50 Q54,54 58,50 Q62,46 66,50 Q70,54 74,50 Q78,46 82,50"
+            dur="4.2s" repeatCount="indefinite"/>
+        </path>
+        <path d="M42,57 Q46,53 50,57 Q54,61 58,57 Q62,53 66,57 Q70,61 74,57 Q78,53 82,57" opacity="0.2" stroke-width="0.9">
+          <animate attributeName="d"
+            values="M42,57 Q46,53 50,57 Q54,61 58,57 Q62,53 66,57 Q70,61 74,57 Q78,53 82,57;
+                    M42,57 Q46,61 50,57 Q54,53 58,57 Q62,61 66,57 Q70,53 74,57 Q78,61 82,57;
+                    M42,57 Q46,53 50,57 Q54,61 58,57 Q62,53 66,57 Q70,61 74,57 Q78,53 82,57"
+            dur="3.8s" repeatCount="indefinite"/>
+        </path>
       </g>
       <circle cx="60" cy="48" r="18" fill="rgba(30,58,110,0.05)" stroke-width="1"/>
-      <circle cx="60" cy="48" r="3.5" fill="rgba(30,58,110,0.18)" stroke-width="1"/>
+      <circle cx="60" cy="48" r="3.5" fill="rgba(30,58,110,0.18)" stroke-width="1">
+        <animate attributeName="r" values="3;4.5;3" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
       <line x1="75" y1="35" x2="87" y2="25" opacity="0.45"/>
       <circle cx="75" cy="35" r="1" fill="currentColor"/>
       <text x="88" y="24" font-family="JetBrains Mono,monospace" font-size="5.5" fill="currentColor" stroke="none" letter-spacing="0.06em">HYDRO-STAR</text>
@@ -1414,25 +1525,60 @@ function renderUniverse() {
     </svg>`,
 
     'WORLD-07 / ZAFAR-NAYU': `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="0.8">
-      <circle cx="60" cy="48" r="40" stroke-dasharray="3 4" opacity="0.18"/>
-      <circle cx="60" cy="48" r="30" stroke-dasharray="3 3" opacity="0.26"/>
-      <circle cx="60" cy="48" r="20" stroke-dasharray="2 2" opacity="0.42"/>
+      <g>
+        <circle cx="60" cy="48" r="40" stroke-dasharray="3 4" opacity="0.18"/>
+        <animateTransform attributeName="transform" type="rotate" from="0 60 48" to="360 60 48" dur="40s" repeatCount="indefinite"/>
+      </g>
+      <g>
+        <circle cx="60" cy="48" r="30" stroke-dasharray="3 3" opacity="0.26"/>
+        <animateTransform attributeName="transform" type="rotate" from="360 60 48" to="0 60 48" dur="28s" repeatCount="indefinite"/>
+      </g>
+      <g>
+        <circle cx="60" cy="48" r="20" stroke-dasharray="2 2" opacity="0.42"/>
+        <animateTransform attributeName="transform" type="rotate" from="0 60 48" to="360 60 48" dur="18s" repeatCount="indefinite"/>
+      </g>
       <line x1="60" y1="48" x2="60" y2="9"  opacity="0.55"/>
-      <circle cx="60" cy="9"  r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <circle cx="60" cy="9"  r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9">
+        <animate attributeName="r" values="2.4;3.6;2.4" dur="2.4s" begin="0s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" begin="0s" repeatCount="indefinite"/>
+      </circle>
       <line x1="60" y1="48" x2="95" y2="22" opacity="0.55"/>
-      <circle cx="95" cy="22" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <circle cx="95" cy="22" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9">
+        <animate attributeName="r" values="2.4;3.6;2.4" dur="2.4s" begin="0.34s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" begin="0.34s" repeatCount="indefinite"/>
+      </circle>
       <line x1="60" y1="48" x2="100" y2="57" opacity="0.55"/>
-      <circle cx="100" cy="57" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <circle cx="100" cy="57" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9">
+        <animate attributeName="r" values="2.4;3.6;2.4" dur="2.4s" begin="0.68s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" begin="0.68s" repeatCount="indefinite"/>
+      </circle>
       <line x1="60" y1="48" x2="80"  y2="86" opacity="0.55"/>
-      <circle cx="80"  cy="86" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <circle cx="80"  cy="86" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9">
+        <animate attributeName="r" values="2.4;3.6;2.4" dur="2.4s" begin="1.02s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" begin="1.02s" repeatCount="indefinite"/>
+      </circle>
       <line x1="60" y1="48" x2="40"  y2="86" opacity="0.55"/>
-      <circle cx="40"  cy="86" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <circle cx="40"  cy="86" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9">
+        <animate attributeName="r" values="2.4;3.6;2.4" dur="2.4s" begin="1.36s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" begin="1.36s" repeatCount="indefinite"/>
+      </circle>
       <line x1="60" y1="48" x2="20"  y2="57" opacity="0.55"/>
-      <circle cx="20"  cy="57" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
+      <circle cx="20"  cy="57" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9">
+        <animate attributeName="r" values="2.4;3.6;2.4" dur="2.4s" begin="1.7s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" begin="1.7s" repeatCount="indefinite"/>
+      </circle>
       <line x1="60" y1="48" x2="25"  y2="22" opacity="0.55"/>
-      <circle cx="25"  cy="22" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9"/>
-      <circle cx="60" cy="48" r="10" fill="rgba(30,58,110,0.06)" stroke-width="1.2"/>
-      <circle cx="60" cy="48" r="4"  fill="rgba(30,58,110,0.22)" stroke-width="1"/>
+      <circle cx="25"  cy="22" r="3" fill="rgba(30,58,110,0.12)" stroke-width="0.9">
+        <animate attributeName="r" values="2.4;3.6;2.4" dur="2.4s" begin="2.04s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" begin="2.04s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="60" cy="48" r="10" fill="rgba(30,58,110,0.06)" stroke-width="1.2">
+        <animate attributeName="r" values="9;11;9" dur="3.2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="60" cy="48" r="4"  fill="rgba(30,58,110,0.22)" stroke-width="1">
+        <animate attributeName="r" values="3.2;4.8;3.2" dur="1.8s" repeatCount="indefinite"/>
+        <animate attributeName="fill-opacity" values="1;0.4;1" dur="1.8s" repeatCount="indefinite"/>
+      </circle>
       <line x1="70" y1="38" x2="82" y2="27" opacity="0.45"/>
       <circle cx="70" cy="38" r="1" fill="currentColor"/>
       <text x="83" y="26" font-family="JetBrains Mono,monospace" font-size="6" fill="currentColor" stroke="none" letter-spacing="0.06em">HIVE-MIND</text>
